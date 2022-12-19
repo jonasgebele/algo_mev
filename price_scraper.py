@@ -53,6 +53,20 @@ def get_swap_price_from_address(address: str):
     return swap_price
 
 def main():
+    """
+    Get the spot prices from various sources and write them to a CSV file.
+
+    The following prices are obtained and written to the CSV file:
+    Binance Spot price for the 'ALGOUSDT' pair
+    Humbe Swap price for the 'ALGOUSDC' address
+    Humbe Swap price for the 'ALGOgoUSD' address
+    Pact price for the 'ALGOUSDC' address
+    Pact price for the 'ALGOUSDT' address
+    Tinyman price for the 'ALGOUSDC' address
+    Tinyman price for the 'ALGOUSDT' address
+
+    The prices are obtained continuously in a loop and written to the CSV file with a timestamp.
+    """
     # Open the CSV file for writing
     with open("prices2.csv", "w", newline="") as f:
         # Create a CSV writer
