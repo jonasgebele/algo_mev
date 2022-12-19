@@ -144,7 +144,16 @@ def main():
             writer = csv.writer(f)
 
             # Write the avg_price and timestamp to the file as a new row
-            writer.writerow([timestamp, avg_price, avg_price1, avg_price6, avg_price2, avg_price5, avg_price3, avg_price4])
+            writer.writerow([
+                timestamp,
+                binance_usdt,
+                humbleswap_usdc,
+                humbleswap_gousd,
+                pact_usdc,
+                pact_usdt,
+                tinyman_usdc,
+                tinyman_usdt
+            ])
 
         # Sleep for 2 seconds before making the next API call to get to the 4,5 second block time of Algorand
         time.sleep(2)
