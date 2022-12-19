@@ -18,11 +18,8 @@ def get_avg_spot_price_from_binance_api():
     spot_price = round(avg_price, 6)
     return spot_price
 
-def get_swap_price_from_humbleswap_usdc():
-    # Address of Pool Account of ALGO USDT HumbleSwap 
-    address = "SVZS7Q7QMVHZONDHZJHR4564VTMEX3OQ5DSYBWKR5FJFTPZLVG3EZIWC34"
-    
-    # Make a GET request to the HumbleSwap API
+def get_swap_price_from_address(address):
+    # Make a GET request to the Address of Pool Account we want to monitor
     response = requests.get(f"https://node.algoexplorerapi.io/v2/accounts/{address}")
 
     # Extract the amount and assets values from the API response
@@ -33,80 +30,12 @@ def get_swap_price_from_humbleswap_usdc():
     swap_price = round(assets[0]["amount"] / amount, 6)
     return swap_price
 
-def get_swap_price_from_humbleswap_gousd():
-    # Address of Pool Account of ALGO goUSD HumbleSwap 
-    address = "LMU5MRQWB3DDSM7J3YY32OBURDL3FHEHQW7J6USTIR5J3HSCNSCDTGDTCU"
-    
-    # Make a GET request to the HumbleSwap API
-    response = requests.get(f"https://node.algoexplorerapi.io/v2/accounts/{address}")
-
-    # Extract the amount and assets values from the API response
-    amount = response.json()['amount']
-    assets = response.json()['assets']
-
-    # Calculate the swap price as the assets[0]["amount"] divided by amount
-    swap_price = round(assets[0]["amount"] / amount, 6)
-    return swap_price
-
-def get_swap_price_from_pact_usdc():
-    # Address of Pool Account of ALGO USDC Pact DEX
-    address = "L747MOJV43QCLY4HSWVPL2A5SW62IBLA5XPTI5R4HO32WVAWOO5OBCEP3A"
-    
-    # Make a GET request to the HumbleSwap API
-    response = requests.get(f"https://node.algoexplorerapi.io/v2/accounts/{address}")
-
-    # Extract the amount and assets values from the API response
-    amount = response.json()['amount']
-    assets = response.json()['assets']
-
-    # Calculate the swap price as the assets[1]["amount"] divided by amount
-    swap_price = round(assets[0]["amount"] / amount, 6)
-    return swap_price
-
-def get_swap_price_from_pact_usdt():
-    # Address of Pool Account of ALGO USDT Pact DEX
-    address = "KIQDDU4KRXFMUBMLQ75VN5R6RVQHNGHCEX43VSPYHGHBNW27AFNGEZ7EY4"
-    
-    # Make a GET request to the HumbleSwap API
-    response = requests.get(f"https://node.algoexplorerapi.io/v2/accounts/{address}")
-
-    # Extract the amount and assets values from the API response
-    amount = response.json()['amount']
-    assets = response.json()['assets']
-
-    # Calculate the swap price as the assets[1]["amount"] divided by amount
-    swap_price = round(assets[0]["amount"] / amount, 6)
-    return swap_price
-
-def get_swap_price_from_tinyman_usdc():
-    # Address of Pool Account of ALGO USDC Tinyman
-    address = "FPOU46NBKTWUZCNMNQNXRWNW3SMPOOK4ZJIN5WSILCWP662ANJLTXVRUKA"
-    
-    # Make a GET request to the HumbleSwap API
-    response = requests.get(f"https://node.algoexplorerapi.io/v2/accounts/{address}")
-
-    # Extract the amount and assets values from the API response
-    amount = response.json()['amount']
-    assets = response.json()['assets']
-
-    # Calculate the swap price as the assets[1]["amount"] divided by amount
-    swap_price = round(assets[0]["amount"] / amount, 6)
-    return swap_price
-
-def get_swap_price_from_tinyman_usdt():
-    # Address of Pool Account of ALGO USDT Tinyman
-    address = "54UTVEAHWMBYB4L4BNLAEJFWBUTLLERTULROEEP7774OK6FUTX4U5NX6RM"
-    
-    # Make a GET request to the HumbleSwap API
-    response = requests.get(f"https://node.algoexplorerapi.io/v2/accounts/{address}")
-
-    # Extract the amount and assets values from the API response
-    amount = response.json()['amount']
-    assets = response.json()['assets']
-
-    # Calculate the swap price as the assets[1]["amount"] divided by amount
-    swap_price = round(assets[0]["amount"] / amount, 6)
-    return swap_price
+HUMBLESWAP_ALGOUSDC = "SVZS7Q7QMVHZONDHZJHR4564VTMEX3OQ5DSYBWKR5FJFTPZLVG3EZIWC34"
+HUMBLESWAP_ALGOgoUSD = "LMU5MRQWB3DDSM7J3YY32OBURDL3FHEHQW7J6USTIR5J3HSCNSCDTGDTCU"
+PACT_ALGOUSDC = "L747MOJV43QCLY4HSWVPL2A5SW62IBLA5XPTI5R4HO32WVAWOO5OBCEP3A"
+PACT_ALGOUSDT = "KIQDDU4KRXFMUBMLQ75VN5R6RVQHNGHCEX43VSPYHGHBNW27AFNGEZ7EY4"
+TINYMAN_ALGOUSDC = "FPOU46NBKTWUZCNMNQNXRWNW3SMPOOK4ZJIN5WSILCWP662ANJLTXVRUKA"
+TINYMAN_ALGOUSDT = "54UTVEAHWMBYB4L4BNLAEJFWBUTLLERTULROEEP7774OK6FUTX4U5NX6RM"
 
 def main():
     # Open the CSV file for writing
@@ -131,12 +60,12 @@ def main():
 
         # Get the average price from the API
         binance_usdt = get_avg_spot_price_from_binance_api()
-        humbleswap_usdc = get_swap_price_from_humbleswap_usdc()
-        humbleswap_gousd = get_swap_price_from_humbleswap_gousd()
-        pact_usdc = get_swap_price_from_pact_usdc()
-        pact_usdt = get_swap_price_from_pact_usdt()
-        tinyman_usdc = get_swap_price_from_tinyman_usdc()
-        tinyman_usdt = get_swap_price_from_tinyman_usdt()
+        humbleswap_usdc = get_swap_price_from_address(HUMBLESWAP_ALGOUSDC)
+        humbleswap_gousd = get_swap_price_from_address(HUMBLESWAP_ALGOgoUSD)
+        pact_usdc = get_swap_price_from_address(PACT_ALGOUSDC)
+        pact_usdt = get_swap_price_from_address(PACT_ALGOUSDT)
+        tinyman_usdc = get_swap_price_from_address(TINYMAN_ALGOUSDC)
+        tinyman_usdt = get_swap_price_from_address(TINYMAN_ALGOUSDT)
 
         # Open the CSV file for writing
         with open("prices2.csv", "a", newline="") as f:
