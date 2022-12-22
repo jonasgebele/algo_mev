@@ -34,24 +34,20 @@ def get_block_data(round: int):
     finally:
         return hash, transactions, timestamp
 
-def main(round_start, round_stop):
-    hash, transactions, timestamp = get_block_data(25729521)
-    relevant_transactions = extract_groups_with_application_calls(transactions)
-    print(relevant_transactions)
+def main(start, end):
+    for i in range(start, end):
+        hash, transactions, timestamp = get_block_data(i) #25729521
+        relevant_transactions = extract_groups_with_application_calls(transactions)
+        print(relevant_transactions)
 
 if __name__ == "__main__":
     # Create an argument parser
     parser = argparse.ArgumentParser()
-    
-    #start 0 - max = current block height -1
-    # min = max, current block height
 
-    # Add two integer arguments with a restricted range
-    parser.add_argument("round_start", type=int, min=0, max=10)
-    parser.add_argument("round_stop", type=int, min=1, max=10)
+    # Add two integer arguments with a restricted range of blocks to query
+    parser.add_argument("start", type=int, help="first block we want to query (included)")
+    parser.add_argument("end", type=int, help="last block we want to query (excluded)")
 
-
-    # Parse the arguments from the command line
+    # Parse the command-line arguments
     args = parser.parse_args()
-
-    main(args.round_start, args.round_stop)
+    main(args.start, args.end)
