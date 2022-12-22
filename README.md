@@ -1,6 +1,7 @@
 # Analysing MEV on Algorand
 
 ## DEX Price Scraper
+### Real-Time DEX Price Scraper
 ```
 python price_scraper.py
 ```
@@ -15,13 +16,15 @@ timestamp,priceBinanceSpot[ALGOUSDT],priceHumbeSwap[ALGOUSDC],priceHumbeSwap[ALG
 1671452651.07,0.18465,0.185404,0.194214,0.184586,0.182313,0.184843,0.187997
 1671452654.96,0.18465,0.185404,0.194214,0.184586,0.182313,0.184843,0.187997
 ```
+### Historic DEX Price Scraper
+Coming Soon.
 
-## DeFi-Tx Extractor from Block-Data
-To parse block number 25729521.
+## Parse Historic Smart Contract Interactions
+E.g. parse block number 25729521.
 ```
 python block_tx_scraper.py 25729521 25729522
 ```
-Output:
+Output (Interaction on AlgoFi):
 ```
 {
   "application-transaction": {
