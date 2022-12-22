@@ -45,10 +45,8 @@ def main(start, end):
         hash, timestamp, transactions = get_block_data(i)
         application_tx_groups = extract_application_call_groups(transactions)
         transaction_groups = add_payment_transaction_to_groups(transactions, application_tx_groups)
-        
         for group_id in transaction_groups:
-            print(transaction_groups[group_id])
-            print(" ")
+            print(str(transaction_groups[group_id]) + "\n")
         
 
 if __name__ == "__main__":
@@ -61,4 +59,4 @@ if __name__ == "__main__":
 
     # Parse the command-line arguments
     args = parser.parse_args()
-    main(args.start, args.end)
+    main(args.start, args.end)# 25336601
