@@ -19,17 +19,28 @@ def get_avg_spot_price_from_binance_spot(pair: str):
     Returns:
     float: The average spot price for the given pair.
     """
-    # Make a GET request to the Binance API to the given pair
-    response = requests.get(f"https://api.binance.com/api/v3/ticker/bookTicker?symbol={pair}")
+    # Default value for price to return in case of a exception
+    spot_price = 0.000000
 
-    # Extract the bidPrice and askPrice values from the API response to calculate the average orderbook price
-    bid_price = response.json()['bidPrice']
-    ask_price = response.json()['askPrice']
+    try:
+        # Make a GET request to the Binance API to the given pair
+        response = requests.get(f"https://api.binance.com/api/v3/ticker/bookTicker?symbol={pair}")
 
-    # Calculate the average of the two prices
-    avg_price = (float(bid_price) + float(ask_price)) / 2
-    spot_price = round(avg_price, 6)
-    return spot_price
+        # Extract the bidPrice and askPrice values from the API response to calculate the average orderbook price
+        bid_price = response.json()['bidPrice']
+        ask_price = response.json()['askPrice']
+
+        # Calculate the average of the two prices
+        avg_price = (float(bid_price) + float(ask_price)) / 2
+        spot_price = round(avg_price, 6)
+    except requests.exceptions.RequestException as e:
+        # Handle any exceptions that occurred while making the API call
+        print(f"An error occurred: {e}")
+    except ValueError as e:
+        # Handle any value errors that occurred while processing the response
+        print(f"An error occurred: {e}")
+    finally:
+        return spot_price
 
 def get_swap_price_from_address(address: str):
     """
@@ -41,30 +52,31 @@ def get_swap_price_from_address(address: str):
     Returns:
     float: The swap price for the given address.
     """
-    # Make a GET request to the Address of Pool Account we want to monitor
-    response = requests.get(f"https://node.algoexplorerapi.io/v2/accounts/{address}")
+    # Default value for price to return in case of a exception
+    spot_price = 0.000000
 
-    # Extract the amount and assets values from the API response
-    amount = response.json()['amount']
-    assets = response.json()['assets']
+    try:
+        # Make a GET request to the Address of Pool Account we want to monitor
+        response = requests.get(f"https://node.algoexplorerapi.io/v2/accounts/{address}")
 
-    # Calculate the swap price as the assets[0]["amount"] divided by amount
-    swap_price = round(assets[0]["amount"] / amount, 6)
-    return swap_price
+        # Extract the amount and assets values from the API response
+        amount = response.json()['amount']
+        assets = response.json()['assets']
+
+        # Calculate the swap price as the assets[0]["amount"] divided by amount
+        swap_price = round(assets[0]["amount"] / amount, 6)
+    except requests.exceptions.RequestException as e:
+        # Handle any exceptions that occurred while making the API call
+        print(f"An error occurred: {e}")
+    except ValueError as e:
+        # Handle any value errors that occurred while processing the response
+        print(f"An error occurred: {e}")
+    finally:
+        return swap_price
 
 def main():
     """
     Get the spot prices from various sources and write them to a CSV file.
-
-    The following prices are obtained and written to the CSV file:
-    Binance Spot price for the 'ALGOUSDT' pair
-    Humbe Swap price for the 'ALGOUSDC' address
-    Humbe Swap price for the 'ALGOgoUSD' address
-    Pact price for the 'ALGOUSDC' address
-    Pact price for the 'ALGOUSDT' address
-    Tinyman price for the 'ALGOUSDC' address
-    Tinyman price for the 'ALGOUSDT' address
-
     The prices are obtained continuously in a loop and written to the CSV file with a timestamp.
     """
     # Open the CSV file for writing
