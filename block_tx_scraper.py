@@ -6,12 +6,21 @@ from collections import defaultdict
 
 BASE_URL = "https://algoindexer.algoexplorerapi.io/v2/blocks/"
 
-def extract_groups_with_application_calls(transactions: dict) -> dict:
-    transactions_by_groupID = defaultdict(list)
-    for tx in transactions:
-        if "group" in tx:
-            transactions_by_groupID[tx["group"]] = tx
-    return transactions_by_groupID
+def add_payment_transaction_to_groups(transactions, application_tx_group):
+    for transaction in transactions:
+        if "group" in transaction:
+            group_id = transaction["group"]
+            if not (transaction in application_tx_group[group_id]):
+                application_tx_group[group_id].append(transaction)
+    return application_tx_group
+
+def extract_application_call_groups(transactions: dict) -> dict:
+    transaction_groups = defaultdict(list)
+    for transaction in transactions:
+        if "group" in transaction:
+            group_id = transaction["group"]
+            transaction_groups[group_id].append(transaction)
+    return transaction_groups
 
 def get_block_data(round: int):
     hash, transactions, timestamp = "ERROR", {}, 0
@@ -23,22 +32,24 @@ def get_block_data(round: int):
         transactions = response["transactions"]
         timestamp = response["timestamp"]
     except requests.exceptions.RequestException as e:
-        # Handle any exceptions that occurred while making the API call
-        print(f"An error occurred: {e}")
+        print(f"An request error occurred: {e}")
     except KeyError as e:
-        # Handle any key errors that occurred while processing the response
-        print(f"An error occurred: {e}")
+        print(f"An key error occurred: {e}")
     except AssertionError as e:
-        # If the response doesn't align with the specified parameter
-        print(f"An error occurred: {e}")
+        print(f"An assertion error occurred: {e}")
     finally:
-        return hash, transactions, timestamp
+        return hash, timestamp, transactions
 
 def main(start, end):
     for i in range(start, end):
-        hash, transactions, timestamp = get_block_data(i) #25729521
-        relevant_transactions = extract_groups_with_application_calls(transactions)
-        print(relevant_transactions)
+        hash, timestamp, transactions = get_block_data(i)
+        application_tx_groups = extract_application_call_groups(transactions)
+        transaction_groups = add_payment_transaction_to_groups(transactions, application_tx_groups)
+        
+        for group_id in transaction_groups:
+            print(transaction_groups[group_id])
+            print(" ")
+        
 
 if __name__ == "__main__":
     # Create an argument parser
