@@ -24,7 +24,7 @@ E.g. parse block number 25729521.
 ```
 python block_tx_scraper.py 25729521 25729522
 ```
-Output (Interaction on AlgoFi):
+Output ([Swap on DEX](https://algoexplorer.io/tx/group/xOfl513cvxwdHkdTEHhqB%2BmuQ8Z%2F4pLcC9iXCGImw4A%3D)):
 ```
 [
   {
