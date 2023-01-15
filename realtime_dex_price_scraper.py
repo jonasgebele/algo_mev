@@ -30,17 +30,13 @@ def get_avg_spot_price_from_binance_spot(pair):
     try:
         # Make a GET request to the Binance API to the given pair
         response = requests.get(f"https://api.binance.com/api/v3/ticker/bookTicker?symbol={pair}")
-
         # Get the current date and time
         now = datetime.now()
-
         # Get the timestamp
         timestamp = int(now.timestamp())
-
         # Extract the bidPrice and askPrice values from the API response to calculate the average orderbook price
         bid_price = response.json()['bidPrice']
         ask_price = response.json()['askPrice']
-
         # Calculate the average of the two prices
         avg_price = (float(bid_price) + float(ask_price)) / 2
         spot_price = round(avg_price, 6)
@@ -57,13 +53,11 @@ def get_avg_spot_price_from_binance_spot(pair):
 def get_swap_price_from_address_at_range(markets, key):
     # Make a GET request to the Address of Pool Account we want to monitor
     response = requests.get(f"https://node.algoexplorerapi.io/v2/accounts/{markets[key]}").json()
-
     # Extract the pool-sizes and asset values from the API response
     assets = response['assets']
     X = response['amount']
     Y = assets[0]["amount"]
     round = response['round']
-
     # Calculate the swap price as the Y divided by X
     swap_price = Y / X
     return key, round, swap_price, X, Y
@@ -76,11 +70,8 @@ def main():
     with open("prices2.csv", "w", newline="") as f:
         # Create a CSV writer
         writer = csv.writer(f)
-
         # Write the header row
-        writer.writerow([
-            x for market_key in ordered_list_of_market_keys for x in (market_key, "pool_size_X", "pool_size_Y")
-        ])
+        writer.writerow([x for market_key in ordered_list_of_market_keys for x in (market_key, "pool_size_X", "pool_size_Y")])
     
     while True:
         prices = {}
@@ -95,7 +86,6 @@ def main():
         with open("prices2.csv", "a", newline="") as f:
             # Create a CSV writer
             writer = csv.writer(f)
-
             price_info_tuples = [prices[market_key] for market_key in ordered_list_of_market_keys]
             writer.writerow([x for tuple in price_info_tuples for x in tuple])
 
