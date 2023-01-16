@@ -17,7 +17,7 @@ def get_cex_markets():
     cex_markets["Binance_ALGOUSDT"] = "ALGOUSDT"
     return cex_markets
 
-def get_sorted_list_of_keys(markets):
+def get_sorted_keys(markets):
     keys = list(markets.keys())
     keys.sort()
     return keys
@@ -36,18 +36,17 @@ def get_avg_spot_price_from_binance_spot(markets, key):
     except ValueError as e:
         print(f"An error occurred: {e}")
     finally:
-        return key, spot_price
+        return [key, spot_price]
 
 def get_swap_price_from_address_at_range(markets, key):
     try:
-# ------------------------------------------------------------------------------------------#
         # ALGOEXPLORER INDEXER
         #response = requests.get(f"https://node.algoexplorerapi.io/v2/accounts/{markets[key]}").json()
 
         # TUM INDEXER
         response = requests.get(f"http://131.159.14.109:8981/v2/accounts/{markets[key]}").json()
         response = response["account"]
-#-------------------------------------------------------------------------------------------#
+
         round = response['round']
         X = response['amount']
         assets = response['assets']
@@ -61,24 +60,33 @@ def get_swap_price_from_address_at_range(markets, key):
     except ZeroDivisionError:
         print("Cannot divide by zero.")
     finally:
-        return key, round, swap_price, X, Y
+        return [key, round, swap_price, X, Y]
 
 def write_csv_header(filename, ordered_dex_keys, ordered_cex_keys):
     with open(filename, "w", newline="") as f:
         writer = csv.writer(f)
-        dex_row = [x for market_key in ordered_dex_keys for x in ("range", market_key, "pool_size_X", "pool_size_Y")]
+        dex_row = [x for market_key in ordered_dex_keys for x in ("round->", market_key, "pool_size_X", "pool_size_Y")]
+
         header_row = []
         header_row.extend(ordered_cex_keys)
         header_row.extend(dex_row)
+
         writer.writerow(header_row)
 
-def write_response_row(filename, ordered_dex_keys, scraped_dex_info):
+def write_response_row(filename, ordered_dex_keys, ordered_cex_keys, scraped_dex_responses, scraped_cex_responses):
     with open(filename, "a", newline="") as f:
         writer = csv.writer(f)
-        # Get response information in uniform order
-        price_info_tuples = [scraped_dex_info[key] for key in ordered_dex_keys]
-        # Write dereferenced tuples in CSV file
-        writer.writerow([x for tuple in price_info_tuples for x in tuple])
+        
+        dex_info_tuples = [scraped_dex_responses[key] for key in ordered_dex_keys]
+        dex_row = [x for tuple in dex_info_tuples for x in tuple]
+
+        cex_row = [scraped_cex_responses[key] for key in ordered_cex_keys]
+
+        response_row = []
+        response_row.extend(cex_row)
+        response_row.extend(dex_row)
+
+        writer.writerow(response_row)
 
 def response_changed(scraped_dex_info, latest_scraped_dex_info):
         if scraped_dex_info == latest_scraped_dex_info:
@@ -91,37 +99,40 @@ def consistent_rounds(rounds):
     return True
 
 def main():
-    # dex and cex markets-dict with descriptors as keys and addresses/pair-names as values
     dex_markets, cex_markets = get_dex_markets(), get_cex_markets()
-    # get uniform-order (alphabetically) of keys from the markets-dict
-    ordered_dex_keys, ordered_cex_keys = get_sorted_list_of_keys(dex_markets), get_sorted_list_of_keys(cex_markets)
+    ordered_dex_keys, ordered_cex_keys = get_sorted_keys(dex_markets), get_sorted_keys(cex_markets)
     
     write_csv_header("prices.csv", ordered_dex_keys, ordered_cex_keys)
     
-    # Store track of API response information from the latest call
     last_dex_responses = None
     while True:
         scraped_dex_responses = {}
-        # Keep track of rounds for each DEX-info scraped
+        scraped_cex_responses = {}
         rounds_of_responses = set()
 
-        # Making API calls parallized instead of sequentially to reduce I/O delay
         with ThreadPoolExecutor() as executor:
             results = [executor.submit(get_swap_price_from_address_at_range, dex_markets, key) for key in ordered_dex_keys]
-            # results.extend([executor.submit(get_avg_spot_price_from_binance_spot, cex_markets, key) for key in ordered_cex_keys])
+            results.extend([executor.submit(get_avg_spot_price_from_binance_spot, cex_markets, key) for key in ordered_cex_keys])
             for f in as_completed(results):
-                key, round, swap_price, X, Y = f.result()
-                scraped_dex_responses[key] = round, swap_price, X, Y
-                rounds_of_responses.add(round)
+                result = f.result()
+                is_dex_result = True if len(result) == 5 else False
+                if is_dex_result:
+                    key, round, swap_price, X, Y = result[0], result[1], result[2], result[3], result[4]
+                    scraped_dex_responses[key] = round, swap_price, X, Y
+                    rounds_of_responses.add(round)
+                else:
+                    key, spot_price= result[0], result[1]
+                    scraped_cex_responses[key] = spot_price
 
         if not response_changed(scraped_dex_responses, last_dex_responses):
             continue
-        last_dex_responses = scraped_dex_responses.copy()
-        
+        else:
+            last_dex_responses = scraped_dex_responses.copy()
+
         if not consistent_rounds(rounds_of_responses):
             continue
         
-        write_response_row("prices.csv", ordered_dex_keys, scraped_dex_responses)
+        write_response_row("prices.csv", ordered_dex_keys,  ordered_cex_keys, scraped_dex_responses, scraped_cex_responses)
 
 if __name__ == "__main__":
     try:
