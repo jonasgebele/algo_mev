@@ -1,4 +1,5 @@
 import csv
+import time
 from datetime import datetime
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -70,17 +71,24 @@ def main():
     with open("prices2.csv", "w", newline="") as f:
         # Create a CSV writer
         writer = csv.writer(f)
+
         # Write the header row
-        writer.writerow([x for market_key in ordered_list_of_market_keys for x in (market_key, "pool_size_X", "pool_size_Y")])
+        writer.writerow([x for market_key in ordered_list_of_market_keys for x in ("range", market_key, "pool_size_X", "pool_size_Y")])
     
+    last_prices = None
     while True:
         prices = {}
+
         with ThreadPoolExecutor() as executor:
             results = [executor.submit(get_swap_price_from_address_at_range, markets, market_key) for market_key in ordered_list_of_market_keys]
-            results.append(executor.submit(get_avg_spot_price_from_binance_spot, "ALGOUSDT"))
+            # results.append(executor.submit(get_avg_spot_price_from_binance_spot, "ALGOUSDT"))
             for f in as_completed(results):
                 key, round, swap_price, X, Y = f.result()
                 prices[key] = (round, swap_price, X, Y)
+
+        if prices == last_prices:
+            continue
+        last_prices = prices.copy()
 
         # Open the CSV file for writing
         with open("prices2.csv", "a", newline="") as f:
@@ -88,6 +96,10 @@ def main():
             writer = csv.writer(f)
             price_info_tuples = [prices[market_key] for market_key in ordered_list_of_market_keys]
             writer.writerow([x for tuple in price_info_tuples for x in tuple])
+            
+
+        # Sleep for 1 second
+        time.sleep(0.75)
 
 if __name__ == "__main__":
     main()
