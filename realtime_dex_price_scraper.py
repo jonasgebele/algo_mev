@@ -78,6 +78,7 @@ def main():
     last_prices = None
     while True:
         prices = {}
+        rounds = set()
 
         with ThreadPoolExecutor() as executor:
             results = [executor.submit(get_swap_price_from_address_at_range, markets, market_key) for market_key in ordered_list_of_market_keys]
@@ -85,11 +86,15 @@ def main():
             for f in as_completed(results):
                 key, round, swap_price, X, Y = f.result()
                 prices[key] = (round, swap_price, X, Y)
+                rounds.add(round)
 
         if prices == last_prices:
             continue
         last_prices = prices.copy()
 
+        if len(rounds) != 1:
+            continue
+        
         # Open the CSV file for writing
         with open("prices2.csv", "a", newline="") as f:
             # Create a CSV writer
@@ -97,7 +102,6 @@ def main():
             price_info_tuples = [prices[market_key] for market_key in ordered_list_of_market_keys]
             writer.writerow([x for tuple in price_info_tuples for x in tuple])
             
-
         # Sleep for 1 second
         time.sleep(0.75)
 
