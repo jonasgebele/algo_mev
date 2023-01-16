@@ -3,7 +3,7 @@
 ## DEX Price Scraper
 ### Real-Time DEX Price Scraper
 ```
-python price_scraper.py
+python realtime_dex_price_scraper.py
 ```
 Output
 ```
