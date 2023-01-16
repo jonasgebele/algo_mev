@@ -135,4 +135,8 @@ def main():
             writer.writerow([x for tuple in price_info_tuples for x in tuple])
 
 if __name__ == "__main__":
-    main()
+    try:
+        print("Starting to scrape the Algorand universe.")
+        main()
+    except KeyboardInterrupt:
+        print("Interrupted by user, exiting.")
