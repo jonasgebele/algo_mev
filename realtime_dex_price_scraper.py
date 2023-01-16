@@ -24,10 +24,10 @@ def get_sorted_keys(markets):
 
 def get_avg_spot_price_from_binance_spot(markets, key):
     try:
-        response = requests.get(f"https://api.binance.com/api/v3/ticker/bookTicker?symbol={markets[key]}")
+        response = requests.get(f"https://api.binance.com/api/v3/ticker/bookTicker?symbol={markets[key]}").json()
         # Extract the bidPrice and askPrice values from the orderbook
-        bid_price = response.json()['bidPrice']
-        ask_price = response.json()['askPrice']
+        bid_price = response['bidPrice']
+        ask_price = response['askPrice']
         # Calculate the average of the two prices to get a fair representation of the exchange price
         avg_price = (float(bid_price) + float(ask_price)) / 2
         spot_price = round(avg_price, 17)
@@ -41,11 +41,11 @@ def get_avg_spot_price_from_binance_spot(markets, key):
 def get_swap_price_from_address_at_range(markets, key):
     try:
         # ALGOEXPLORER INDEXER
-        #response = requests.get(f"https://node.algoexplorerapi.io/v2/accounts/{markets[key]}").json()
+        response = requests.get(f"https://node.algoexplorerapi.io/v2/accounts/{markets[key]}").json()
 
         # TUM INDEXER
-        response = requests.get(f"http://131.159.14.109:8981/v2/accounts/{markets[key]}").json()
-        response = response["account"]
+        #response = requests.get(f"http://131.159.14.109:8981/v2/accounts/{markets[key]}").json()
+        #response = response["account"]
 
         round = response['round']
         X = response['amount']
@@ -98,41 +98,45 @@ def consistent_rounds(rounds):
         return False
     return True
 
+def parse_market_endpoints(dex_markets, cex_markets, ordered_dex_keys, ordered_cex_keys):
+    scraped_dex_responses = {}
+    scraped_cex_responses = {}
+    rounds_of_responses = set()
+    
+    with ThreadPoolExecutor() as executor:
+        results = [executor.submit(get_swap_price_from_address_at_range, dex_markets, key) for key in ordered_dex_keys]
+        results.extend([executor.submit(get_avg_spot_price_from_binance_spot, cex_markets, key) for key in ordered_cex_keys])
+        for f in as_completed(results):
+            result = f.result()
+            is_dex_result = True if len(result) == 5 else False
+            if is_dex_result:
+                key, round, swap_price, X, Y = result[0], result[1], result[2], result[3], result[4]
+                scraped_dex_responses[key] = round, swap_price, X, Y
+                rounds_of_responses.add(round)
+            else:
+                key, spot_price= result[0], result[1]
+                scraped_cex_responses[key] = spot_price
+
+        return scraped_dex_responses, rounds_of_responses, scraped_cex_responses
+
 def main():
     dex_markets, cex_markets = get_dex_markets(), get_cex_markets()
     ordered_dex_keys, ordered_cex_keys = get_sorted_keys(dex_markets), get_sorted_keys(cex_markets)
     
-    write_csv_header("prices.csv", ordered_dex_keys, ordered_cex_keys)
+    write_csv_header("../data/responses.csv", ordered_dex_keys, ordered_cex_keys)
     
     last_dex_responses = None
     while True:
-        scraped_dex_responses = {}
-        scraped_cex_responses = {}
-        rounds_of_responses = set()
-
-        with ThreadPoolExecutor() as executor:
-            results = [executor.submit(get_swap_price_from_address_at_range, dex_markets, key) for key in ordered_dex_keys]
-            results.extend([executor.submit(get_avg_spot_price_from_binance_spot, cex_markets, key) for key in ordered_cex_keys])
-            for f in as_completed(results):
-                result = f.result()
-                is_dex_result = True if len(result) == 5 else False
-                if is_dex_result:
-                    key, round, swap_price, X, Y = result[0], result[1], result[2], result[3], result[4]
-                    scraped_dex_responses[key] = round, swap_price, X, Y
-                    rounds_of_responses.add(round)
-                else:
-                    key, spot_price= result[0], result[1]
-                    scraped_cex_responses[key] = spot_price
+        scraped_dex_responses, rounds_of_responses, scraped_cex_responses = parse_market_endpoints(dex_markets, cex_markets, ordered_dex_keys, ordered_cex_keys)
 
         if not response_changed(scraped_dex_responses, last_dex_responses):
             continue
         else:
             last_dex_responses = scraped_dex_responses.copy()
-
         if not consistent_rounds(rounds_of_responses):
             continue
         
-        write_response_row("prices.csv", ordered_dex_keys,  ordered_cex_keys, scraped_dex_responses, scraped_cex_responses)
+        write_response_row("../data/responses.csv", ordered_dex_keys,  ordered_cex_keys, scraped_dex_responses, scraped_cex_responses)
 
 if __name__ == "__main__":
     try:
