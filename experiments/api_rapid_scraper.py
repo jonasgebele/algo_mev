@@ -26,3 +26,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # Add Web-Socket Connection to Server
