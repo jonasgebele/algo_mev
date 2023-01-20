@@ -14,11 +14,9 @@ async def getDateTimeFromAPIWithDelay(url):
 
 async def sendAsyncAtRatePerSecond(url, units):
     startup_interval_delays = [round(unit * (1/units), 4) for unit in range(units)]
-
     for i in startup_interval_delays:
         time.sleep(i)
         _ = asyncio.Task(getDateTimeFromAPIWithDelay(url))
-        
     await asyncio.sleep(9999999999999)
 
 def main():
