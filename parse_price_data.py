@@ -17,28 +17,30 @@ def spot_market_deviation(spot: float, dex_prices: list):
 def parse_prices(source_filename, target_filename):
     with open(source_filename, "r") as input_file:
         reader = csv.reader(input_file)
-        
         with open(target_filename, "w", newline="") as output_file:
             writer = csv.writer(output_file)
-
             for row in reader:
-                prices = list(row[0]) # binance_algousdt
+                prices = list()
+                prices.append(row[0]) # binance_algousdt
                 prices.append(row[2]) # humbleswap_algousdc
                 prices.append(row[6]) # humbleswap_algogousd
                 prices.append(row[10]) # pact_algousdc
                 prices.append(row[14]) # pact_algousdt
                 prices.append(row[18]) # tinyman_algousdc
                 prices.append(row[22]) # tinyman_algousdt
-
                 writer.writerow(prices)
 
 def mev_analysis(fees, filename):
-    with open('path/to/file.csv', 'r') as file:
+    with open(filename, 'r') as file:
         reader = csv.reader(file)
         next(reader) # skip header-row
         for row in reader:
-            spot_price, dex_prices = row[0], row[1:]
-            spot_market_deviation()
+            spot_price, dex_prices = float(row[0]), list(map(float, row[1:]))
+            print(spot_price)
+            print(dex_prices)
+            a = spot_market_deviation(spot_price, dex_prices)
+            print(a)
+            break
 
 def main():
     source_filename = "data/responses.csv"
