@@ -25,15 +25,12 @@ def get_sorted_keys(markets):
 def get_avg_spot_price_from_binance_spot(markets, key):
     try:
         response = requests.get(f"https://api.binance.com/api/v3/ticker/bookTicker?symbol={markets[key]}").json()
-        # Extract the bidPrice and askPrice values from the orderbook
         bid_price = response['bidPrice']
         ask_price = response['askPrice']
         # Calculate the average of the two prices to get a fair representation of the exchange price
         avg_price = (float(bid_price) + float(ask_price)) / 2
         spot_price = round(avg_price, 17)
-    except requests.exceptions.RequestException as e:
-        print(f"An error occurred: {e}")
-    except ValueError as e:
+    except (requests.exceptions.RequestException, ValueError) as e:
         print(f"An error occurred: {e}")
     finally:
         return [key, spot_price]
@@ -42,65 +39,58 @@ def get_swap_price_from_address_at_range(markets, key):
     try:
         # ALGOEXPLORER INDEXER
         response = requests.get(f"https://node.algoexplorerapi.io/v2/accounts/{markets[key]}").json()
-
         # TUM INDEXER
-        #response = requests.get(f"http://131.159.14.109:8981/v2/accounts/{markets[key]}").json()
-        #response = response["account"]
-
+        '''
+        response = requests.get(f"http://131.159.14.109:8981/v2/accounts/{markets[key]}").json()
+        response = response["account"]
+        '''
         round = response['round']
         X = response['amount']
         assets = response['assets']
         Y = assets[0]["amount"]
-        # Calculate the swap price as the Y divided by X
         swap_price = Y / X
-    except requests.exceptions.RequestException as e:
+    except (requests.exceptions.RequestException, ValueError, ZeroDivisionError) as e:
         print(f"An error occurred: {e}")
-    except ValueError as e:
-        print(f"An error occurred: {e}")
-    except ZeroDivisionError:
-        print("Cannot divide by zero.")
     finally:
         return [key, round, swap_price, X, Y]
 
 def write_csv_header(filename, ordered_dex_keys, ordered_cex_keys):
     with open(filename, "w", newline="") as f:
         writer = csv.writer(f)
-        dex_row = [x for market_key in ordered_dex_keys for x in ("round->", market_key, "pool_size_X", "pool_size_Y")]
+        dex_row = [x for market_key in ordered_dex_keys for x in ("round:", market_key, "pool_size_X", "pool_size_Y")]
+        header = list(ordered_cex_keys)
+        header.extend(dex_row)
+        writer.writerow(header)
 
-        header_row = []
-        header_row.extend(ordered_cex_keys)
-        header_row.extend(dex_row)
-
-        writer.writerow(header_row)
+def write_csv_rows(filename, dex_markets, cex_markets, ordered_dex_keys, ordered_cex_keys):
+    last_dex_responses = None
+    while True:
+        scraped_dex_responses, rounds_of_responses, scraped_cex_responses = parse_market_endpoints(dex_markets, cex_markets, ordered_dex_keys, ordered_cex_keys)
+        if not response_changed(scraped_dex_responses, last_dex_responses):
+            continue
+        last_dex_responses = scraped_dex_responses.copy()
+        if not consistent_rounds(rounds_of_responses):
+            continue
+        write_response_row(filename, ordered_dex_keys,  ordered_cex_keys, scraped_dex_responses, scraped_cex_responses)
 
 def write_response_row(filename, ordered_dex_keys, ordered_cex_keys, scraped_dex_responses, scraped_cex_responses):
     with open(filename, "a", newline="") as f:
         writer = csv.writer(f)
-        
         dex_info_tuples = [scraped_dex_responses[key] for key in ordered_dex_keys]
         dex_row = [x for tuple in dex_info_tuples for x in tuple]
-
         cex_row = [scraped_cex_responses[key] for key in ordered_cex_keys]
-
-        response_row = []
-        response_row.extend(cex_row)
-        response_row.extend(dex_row)
-
-        writer.writerow(response_row)
+        response = list(cex_row)
+        response.extend(dex_row)
+        writer.writerow(response)
 
 def response_changed(scraped_dex_info, latest_scraped_dex_info):
-        if scraped_dex_info == latest_scraped_dex_info:
-            return False
-        return True
+    return False if scraped_dex_info == latest_scraped_dex_info else True
 
 def consistent_rounds(rounds):
-    if len(rounds) != 1:
-        return False
-    return True
+    return False if len(rounds) != 1 else True
 
 def parse_market_endpoints(dex_markets, cex_markets, ordered_dex_keys, ordered_cex_keys):
-    scraped_dex_responses = {}
-    scraped_cex_responses = {}
+    scraped_dex_responses, scraped_cex_responses = {}, {}
     rounds_of_responses = set()
     
     with ThreadPoolExecutor() as executor:
@@ -120,23 +110,11 @@ def parse_market_endpoints(dex_markets, cex_markets, ordered_dex_keys, ordered_c
         return scraped_dex_responses, rounds_of_responses, scraped_cex_responses
 
 def main():
+    source_filepath = "data/responses.csv"
     dex_markets, cex_markets = get_dex_markets(), get_cex_markets()
     ordered_dex_keys, ordered_cex_keys = get_sorted_keys(dex_markets), get_sorted_keys(cex_markets)
-    
-    write_csv_header("../data/responses.csv", ordered_dex_keys, ordered_cex_keys)
-    
-    last_dex_responses = None
-    while True:
-        scraped_dex_responses, rounds_of_responses, scraped_cex_responses = parse_market_endpoints(dex_markets, cex_markets, ordered_dex_keys, ordered_cex_keys)
-
-        if not response_changed(scraped_dex_responses, last_dex_responses):
-            continue
-        else:
-            last_dex_responses = scraped_dex_responses.copy()
-        if not consistent_rounds(rounds_of_responses):
-            continue
-        
-        write_response_row("../data/responses.csv", ordered_dex_keys,  ordered_cex_keys, scraped_dex_responses, scraped_cex_responses)
+    write_csv_header(source_filepath, ordered_dex_keys, ordered_cex_keys)
+    write_csv_rows(source_filepath, dex_markets, cex_markets, ordered_dex_keys, ordered_cex_keys)
 
 if __name__ == "__main__":
     try:
