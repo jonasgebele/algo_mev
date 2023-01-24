@@ -7,7 +7,7 @@ from datetime import datetime
 import plotly.express as px
 
 
-st.set_page_config(page_title='Algorand MEV Dashboard', layout = 'wide', page_icon = './images/logo.jpg')
+st.set_page_config(page_title='Algorand MEV Dashboard', layout = 'wide', page_icon = './logo.jpg')
 
 st.title("Algorand MEV Dashboard")
 
