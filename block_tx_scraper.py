@@ -50,13 +50,10 @@ def main(start, end):
         
 
 if __name__ == "__main__":
-    # Create an argument parser
     parser = argparse.ArgumentParser()
 
-    # Add two integer arguments with a restricted range of blocks to query
     parser.add_argument("start", type=int, help="first block we want to query (included)")
     parser.add_argument("end", type=int, help="last block we want to query (excluded)")
 
-    # Parse the command-line arguments
     args = parser.parse_args()
     main(args.start, args.end)# 25336601
