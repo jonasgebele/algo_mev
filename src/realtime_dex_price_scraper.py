@@ -1,8 +1,16 @@
 import sys
 import csv
 import time
+import logging
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+def setup_logging(path):
+    logging.basicConfig(
+        filename=path,
+        level=logging.WARNING,
+        format='%(asctime)s %(levelname)s %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S')
 
 def get_dex_markets():
     dex_markets = {}
@@ -34,9 +42,8 @@ def get_avg_spot_price_from_binance_spot(markets, key):
         # Calculate the average of the two prices to get a fair representation of the exchange price
         avg_price = (float(bid_price) + float(ask_price)) / 2
         spot_price = round(avg_price, 17)
-        print(spot_price)
     except (requests.exceptions.RequestException, ValueError) as e:
-        print(f"An error occurred: {e}")
+        logging.error(f"An exception doing the {key} API-call occured at timestamp {timestamp}: {e}")
     finally:
         return [timestamp, key, spot_price]
 
@@ -63,7 +70,7 @@ def get_swap_price_from_address_at_range(markets, key):
         Y = get_stablecoin_amount(response['assets'])
         swap_price = Y / X
     except (requests.exceptions.RequestException, ValueError, ZeroDivisionError) as e:
-        print(f"An error occurred: {e}")
+        logging.error(f"An exception doing the Indexer API-call occured at round {round}: {e}")
     finally:
         return [key, round, swap_price, X, Y]
 
@@ -129,7 +136,10 @@ def parse_market_endpoints(dex_markets, cex_markets, ordered_dex_keys, ordered_c
 
 def main():
     timestamp = int(time.time())
+
+    setup_logging(f'../logs/responses_{timestamp}.log')
     source_filepath = f"../data/responses_{timestamp}.csv"
+
     dex_markets, cex_markets = get_dex_markets(), get_cex_markets()
     ordered_dex_keys, ordered_cex_keys = get_sorted_keys(dex_markets), get_sorted_keys(cex_markets)
     write_csv_header(source_filepath, ordered_dex_keys, ordered_cex_keys)
