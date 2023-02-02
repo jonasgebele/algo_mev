@@ -2,11 +2,11 @@
 ## DEX Price Scraper
 ### Real-Time DEX Info Scraper
 ```
-$ python realtime_dex_price_scraper.py
+$ python src/realtime_dex_price_scraper.py
 ```
 Run on server in the backtround (and kill the process if you want to end it).
 ```
-$ nohup python realtime_dex_price_scraper.py &
+$ nohup python src/realtime_dex_price_scraper.py &
 $ pgrep -f realtime_dex_price_scraper.py
 $ kill <process ID>
 ```
@@ -21,7 +21,7 @@ Binance_ALGOUSDT,timestamp,round:,HUMBLESWAP_ALGOUSDC,pool_size_X,pool_size_Y,ro
 ### Real-Time DEX Price Converter
 Extract only prices out of that csv file:
 ```
-$ python create_price_data_of_responses.py "../data/responses_XXXXXXXXXX.csv"
+$ python src/create_price_data_of_responses.py "../data/responses_XXXXXXXXXX.csv"
 ```
 Output
 ```
