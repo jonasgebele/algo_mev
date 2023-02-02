@@ -6,13 +6,16 @@ import pandas as pd
 from datetime import datetime
 import plotly.express as px
 
-
-st.set_page_config(page_title='Algorand MEV Dashboard', layout = 'wide', page_icon = './logo.jpg')
+st.set_page_config(page_title='Algorand MEV Dashboard', layout = 'wide', page_icon = './images/logo.jpg')
 
 st.title("Algorand MEV Dashboard")
 
-filepath = "../data/prices.csv"
+filepath = "../data/prices_responses.csv"
 df = pd.read_csv(filepath)
-print(df.head())
 
-st.line_chart(df)
+
+fig = px.line(df, x='timestamp', y=['binance_algousdt', 'humbleswap_algousdc', 'humbleswap_algogousd',
+                                   'pact_algousdc', 'pact_algousdt', 'tinyman_algousdc', 'tinyman_algousdt'],
+             title="Price Data")
+
+st.plotly_chart(fig, use_container_width=True)
