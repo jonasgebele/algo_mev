@@ -1,4 +1,12 @@
 # Analysing MEV on Algorand
+## Price Dashboard
+![image](https://user-images.githubusercontent.com/41921050/216204711-9e63c765-22c1-4e2c-8b10-b4069efcb683.png)
+Run locally with
+```
+streamlit run dashboard/Dashboard.py
+```
+
+
 ## DEX Price Scraper
 ### Real-Time DEX Info Scraper
 ```
