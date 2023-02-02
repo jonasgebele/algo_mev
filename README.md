@@ -26,7 +26,7 @@ timestamp,binance_algousdt,humbleswap_algousdc,humbleswap_algogousd,pact_algousd
 1674694165.43,0.24595,0.2452508205288513,0.2448620844881125,0.24504287134942324,0.2365567269849801,0.24474284501934707,0.24906814028185406
 ```
 
-## Parse Historic Smart Contract Interactions
+## Parse Historic AMM Swap Interactions
 E.g. parse block number 25729521.
 ```
 python block_tx_scraper.py 25729521 25729522
