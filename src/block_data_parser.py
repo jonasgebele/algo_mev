@@ -1,7 +1,4 @@
-import json
 import requests
-import argparse
-
 from collections import defaultdict
 
 BASE_URL = "https://algoindexer.algoexplorerapi.io/v2/blocks/"
@@ -40,20 +37,31 @@ def get_block_data(round: int):
     finally:
         return hash, timestamp, transactions
 
-def main(start, end):
-    for i in range(start, end):
-        hash, timestamp, transactions = get_block_data(i)
-        application_tx_groups = extract_application_call_groups(transactions)
-        transaction_groups = add_payment_transaction_to_groups(transactions, application_tx_groups)
-        for group_id in transaction_groups:
-            print(str(transaction_groups[group_id]) + "\n")
-        
+def get_swap_interactions(block_number):
+    hash, timestamp, transactions = get_block_data(block_number)
+    application_tx_groups = extract_application_call_groups(transactions)
+    transaction_groups = add_payment_transaction_to_groups(transactions, application_tx_groups)
+    return hash, timestamp, transaction_groups
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+def get_swap_summary(transaction_group):
 
-    parser.add_argument("start", type=int, help="first block we want to query (included)")
-    parser.add_argument("end", type=int, help="last block we want to query (excluded)")
+    # Parse txs-groups with 3 txs (of the common 3 DEXes)
 
-    args = parser.parse_args()
-    main(args.start, args.end)# 25336601
+    # Parse txs-groups with 4 txs (of the DEX orderbook exchange)
+
+    # Parse txs from Algorand
+
+    transaction_id = None
+    group_id = None
+    recepient = None
+    sender = None
+
+    application_id = None
+
+    amount_payed = None
+    asset_id_payed = None
+
+    amount_received = None
+    asset_id_received = None
+
+    return
