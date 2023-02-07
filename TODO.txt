@@ -5,3 +5,6 @@
 [ ] Add HumbleSwap missing Algo Stablecoin pairs (e.g. USDT pair)
 [ ] Update Dashboard x-axis to block-numbers
 [ ] Research if swap-interactions can be done only as internal interactions
+
+!!!
+[ ] outsource DEX list to a csv where each file reads in the content
