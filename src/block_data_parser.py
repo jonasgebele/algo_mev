@@ -1,19 +1,9 @@
 import requests
 from collections import defaultdict
 
-# import classes.application_call as ApplicationCall
-# import classes.payment as Payment
-
-    # "HUMBLESWAP_ALGOUSDC" = "SVZS7Q7QMVHZONDHZJHR4564VTMEX3OQ5DSYBWKR5FJFTPZLVG3EZIWC34" = 777628254
-    # "HUMBLESWAP_ALGOgoUSD" = "LMU5MRQWB3DDSM7J3YY32OBURDL3FHEHQW7J6USTIR5J3HSCNSCDTGDTCU" = 778663643
-    # "PACT_ALGOUSDC" = "L747MOJV43QCLY4HSWVPL2A5SW62IBLA5XPTI5R4HO32WVAWOO5OBCEP3A" = 620995314
-    # "PACT_ALGOUSDT" = "KIQDDU4KRXFMUBMLQ75VN5R6RVQHNGHCEX43VSPYHGHBNW27AFNGEZ7EY4" = 667170441
-    # "TINYMAN_ALGOUSDC" = "FPOU46NBKTWUZCNMNQNXRWNW3SMPOOK4ZJIN5WSILCWP662ANJLTXVRUKA" = 552635992 # (4 txs) Here also a fee goes to Tinyman
-    # "TINYMAN_ALGOUSDT" = "54UTVEAHWMBYB4L4BNLAEJFWBUTLLERTULROEEP7774OK6FUTX4U5NX6RM" = 552635992 # (4 txs) Here also a fee goes to Tinyman
+import markets
 
 BASE_URL = "https://algoindexer.algoexplorerapi.io/v2/blocks/"
-MONITORED_DEX_LIST = [777628254, 778663643, 620995314, 667170441, 552635992]
-MONITORED_ASSET_IDs = [312769, 31566704, 672913181] # USDT, USDC, goUSD
 
 def add_transactions_to_groups(transactions, groups):
     for transaction in transactions:
@@ -39,8 +29,8 @@ def get_swap_transaction_groups(transactions: dict) -> dict:
     return groups, transactions_in_groups
 
 def is_monitored_application(application_id):
-    monitored_dex_list = MONITORED_DEX_LIST
-    return True if application_id in monitored_dex_list else False
+    application_ids = list(map(int, markets.get_application_ids()))
+    return True if application_id in application_ids else False
 
 def parse_block_data(round: int):
     transactions = {}
@@ -136,7 +126,6 @@ def swap_summary(transactions):
     
     # Application ID
     application_id = application_call["application-id"]
-    print(application_id)
 
     funding_transaction = get_swap_funding_transaction(transactions, application_id)
     receiving_transaction = get_swap_receiving_transaction(transactions, application_id, application_call_transaction)
@@ -153,9 +142,7 @@ def swap_summary(transactions):
     # Received-Amount, Received-Asset
     #amount_received, asset_id_received = get_received_asset_info(receiving_transaction, application_id)
 
-    print(group_id, ", Sender:", sender, ", Receiver: ", receiver)
-
-
+    return group_id, ", Sender:", sender, ", Receiver: ", receiver
 
     #amount_send = int(payment_tx_info["amount"] / 1000000)
     # asset_id_send
