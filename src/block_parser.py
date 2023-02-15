@@ -1,6 +1,5 @@
 import requests
 from collections import defaultdict
-
 import markets
 
 BASE_URL = "https://algoindexer.algoexplorerapi.io/v2/blocks/"
@@ -21,11 +20,12 @@ def get_swap_transaction_groups(transactions: dict) -> dict:
             transactions_in_groups.remove(transaction)
             continue
         if "application-transaction" in transaction:
-            application_txs = transaction["application-transaction"]
-            application_id = application_txs["application-id"]
-            if is_monitored_application(application_id):
-                group = transaction["group"]
-                groups[group]
+            application_call = transaction["application-transaction"]
+            if "application-id" in application_call:
+                application_id = application_call["application-id"]
+                if is_monitored_application(application_id):
+                    group = transaction["group"]
+                    groups[group]
     return groups, transactions_in_groups
 
 def is_monitored_application(application_id):
@@ -36,8 +36,9 @@ def parse_block_data(round: int):
     transactions = {}
     try:
         response = requests.get(BASE_URL + str(round)).json()
-        transactions = response["transactions"]
-    except (requests.exceptions.RequestException, KeyError) as e:
+        if "transactions" in response:
+            transactions = response["transactions"]
+    except requests.exceptions.RequestException as e:
         print(f"An error occurred: {e}")
     finally:
         return transactions
@@ -60,17 +61,26 @@ def get_funding_transaction(transactions, sender):
         if "tx-type" in transaction:
             tx_type = transaction["tx-type"]
             if tx_type == "pay" or tx_type == "axfer":
-                if transaction["sender"] == sender:
-                    # Check for Tinyman Protocol Fee
-                    if "payment-transaction" in transaction:
-                        if not (transaction["payment-transaction"]["amount"] == 2000):
+                if "sender" in transaction:
+                    if transaction["sender"] == sender:
+                        if "payment-transaction" in transaction:
+                            payment_info = transaction["payment-transaction"]
+                            # Check for Tinyman protocol fee transaction
+                            if "amount" in payment_info:
+                                if payment_info["amount"] == 2000:
+                                    continue
+                                else:
+                                    return transaction
+                        else:
                             return transaction
-                    else:
-                        return transaction
+    return None
 
 def get_receiving_transaction(transactions, application_call, application_id, receiver):
     def default_receiving_transaction(application_call):
-        return application_call["inner-txns"][0]
+        if "inner-txns" in application_call:
+            inner_txs = application_call["inner-txns"]
+            return inner_txs[0]
+        return None
     def tinyman_receiving_transaction(transactions, receiver):
         for transaction in transactions:
             if "tx-type" in transaction:
@@ -85,81 +95,67 @@ def get_receiving_transaction(transactions, application_call, application_id, re
         receiving_transaction = default_receiving_transaction(application_call)
     return receiving_transaction
 
-def get_send_asset_info(funding_transaction):
-    if "tx-type" in funding_transaction:
-        if funding_transaction["tx-type"] == "pay":
-            if "payment-transaction" in funding_transaction:
-                payment_info = funding_transaction["payment-transaction"]
-                amount_send, asset_id_send = payment_info["amount"], 0
-                return amount_send, asset_id_send
-        elif funding_transaction["tx-type"] == "axfer":
-            if "asset-transfer-transaction" in funding_transaction:
-                transfer_info = funding_transaction["asset-transfer-transaction"]
-                amount_send, asset_id_send = transfer_info["amount"], transfer_info["asset-id"]
-                return amount_send, asset_id_send
-        return None
+def get_fields_from_transaction(transaction, fields: list):
+    values = dict()
+    if "tx-type" in transaction:
+        tx_type = transaction["tx-type"]
+        if tx_type == "pay":
+            if "payment-transaction" in transaction:
+                payment_info = transaction["payment-transaction"]
+                for field in fields:
+                    # if is payment-transaction, the asset-id of ALGO of 0 is implicitly given
+                    if field == "asset-id":
+                        values["asset-id"] = 0
+                    else:
+                        values[field] = payment_info[field]
+        elif tx_type == "axfer":
+            if "asset-transfer-transaction" in transaction:
+                transfer_info = transaction["asset-transfer-transaction"]
+                for field in fields:
+                    values[field] = transfer_info[field]
+        elif tx_type == "appl":
+            if "application-transaction" in transaction:
+                app_call_info = transaction["application-transaction"]
+                for field in fields:
+                    values[field] = app_call_info[field]
+    return values
 
-def get_received_asset_info(receiving_transaction):
-    if "tx-type" in receiving_transaction:
-        if receiving_transaction["tx-type"] == "pay":
-            if "payment-transaction" in receiving_transaction:
-                payment_info = receiving_transaction["payment-transaction"]
-                amount_send, asset_id_send = payment_info["amount"], 0
-                return amount_send, asset_id_send
-        elif receiving_transaction["tx-type"] == "axfer":
-            if "asset-transfer-transaction" in receiving_transaction:
-                transfer_info = receiving_transaction["asset-transfer-transaction"]
-                amount_send, asset_id_send = transfer_info["amount"], transfer_info["asset-id"]
-                return amount_send, asset_id_send
-        else:
-            return None, None
-
-def get_receiver_from_funding_transaction(funding_transaction):
-    if "asset-transfer-transaction" in funding_transaction:
-        return funding_transaction["asset-transfer-transaction"]["receiver"]
-    elif "payment-transaction" in funding_transaction:
-        return funding_transaction["payment-transaction"]["receiver"]
-    return None
-
-def get_application_id_from_application_call(application_call):
-    if "asset-transfer-transaction" in application_call:
-        return application_call["asset-transfer-transaction"]["application-id"]
-    elif "payment-transaction" in application_call:
-        return application_call["payment-transaction"]["application-id"]
-    return None
-
-def swap_summary(transactions):
+def extract_swap_information(transactions):
     # 1. Get the unique application call of the group
     application_call = get_application_call_transaction(transactions)
-    
+    group_id = application_call["group"]
+
     # 2. Extract the unique sender out of the application call
     sender = application_call["sender"]
     # 3. Find with the sender-address the funding-transaction from all transactions
     funding_transaction = get_funding_transaction(transactions, sender)
     
     # 4. Extract receiver from the funding-transaction
-    receiver = get_receiver_from_funding_transaction(funding_transaction)
+    receiver_transaction_field = get_fields_from_transaction(funding_transaction, ["receiver"])
+    receiver = receiver_transaction_field["receiver"]
+
     # 5. Extract the application-id to differentiate between different tx's strcutures of protocols
-    application_id = get_application_id_from_application_call(application_call)
+    application_id_transaction_field = get_fields_from_transaction(application_call, ["application-id"])
+    application_id = application_id_transaction_field["application-id"]
     # 6. Find the receiving transaction either in application-call-transaction (Tinyman) or with application-id from all transactions
     receiving_transaction = get_receiving_transaction(transactions, application_call, application_id, receiver)
 
-    # TODO: Check for Tinyman -> Check if Assets are USDC, goUSD or USDT - all assets go over same address
-    if not funding_transaction:
-        return
-    if not receiving_transaction:
-        return
+    if (not funding_transaction) or (not receiving_transaction):
+        return {} # TODO: Check for Tinyman -> Check if Assets are USDC, goUSD or USDT - all assets go over same address
 
-    group_id = application_call["group"]
-    amount_send, asset_id_send = get_send_asset_info(funding_transaction)
-    amount_received, asset_id_received = get_received_asset_info(receiving_transaction)
+    # 7. Parse funding-transaction and receiving-transaction for amount and asset-ids
+    send_transaction_field = get_fields_from_transaction(funding_transaction, ["asset-id", "amount"])
+    amount_send, asset_id_send = send_transaction_field["amount"], send_transaction_field["asset-id"]
+    received_transaction_field = get_fields_from_transaction(receiving_transaction, ["asset-id", "amount"])
+    amount_received, asset_id_received = received_transaction_field["amount"], received_transaction_field["asset-id"]
 
     return {
         "group_id": group_id,
         "sender": sender,
         "receiver": receiver,
+        "application-id": application_id,
         "amount_send": amount_send,
         "asset_id_send": asset_id_send,
         "amount_received": amount_received,
         "asset_id_received": asset_id_received
-        }
+    }
