@@ -10,6 +10,8 @@ def parse_block_parameter():
 def main():
     block_number = parse_block_parameter()
     groups = block_parser.get_swap_interactions(block_number)
+    
+
     for group in groups:
         transactions_of_group = groups[group]
         group_summary = block_parser.swap_summary(transactions_of_group)
