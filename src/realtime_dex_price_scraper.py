@@ -5,6 +5,8 @@ import logging
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+import markets
+
 def setup_logging(path):
     logging.basicConfig(
         filename=path,
@@ -13,13 +15,7 @@ def setup_logging(path):
         datefmt='%Y-%m-%d %H:%M:%S')
 
 def get_dex_markets():
-    dex_markets = {}
-    dex_markets["HUMBLESWAP_ALGOUSDC"] = "SVZS7Q7QMVHZONDHZJHR4564VTMEX3OQ5DSYBWKR5FJFTPZLVG3EZIWC34"
-    dex_markets["HUMBLESWAP_ALGOgoUSD"] = "LMU5MRQWB3DDSM7J3YY32OBURDL3FHEHQW7J6USTIR5J3HSCNSCDTGDTCU"
-    dex_markets["PACT_ALGOUSDC"] = "L747MOJV43QCLY4HSWVPL2A5SW62IBLA5XPTI5R4HO32WVAWOO5OBCEP3A"
-    dex_markets["PACT_ALGOUSDT"] = "KIQDDU4KRXFMUBMLQ75VN5R6RVQHNGHCEX43VSPYHGHBNW27AFNGEZ7EY4"
-    dex_markets["TINYMAN_ALGOUSDC"] = "FPOU46NBKTWUZCNMNQNXRWNW3SMPOOK4ZJIN5WSILCWP662ANJLTXVRUKA"
-    dex_markets["TINYMAN_ALGOUSDT"] = "54UTVEAHWMBYB4L4BNLAEJFWBUTLLERTULROEEP7774OK6FUTX4U5NX6RM"
+    dex_markets = markets.get_markets_addresses()
     return dex_markets
 
 def get_cex_markets():
