@@ -18,6 +18,7 @@ def write_csv_header(filename):
     with open(filename, "w", newline="") as f:
         writer = csv.writer(f)
         header = [
+            "block-height",
             "timestamp",
             "binance_algousdt",
             "humbleswap_algousdc",
@@ -35,6 +36,7 @@ def write_csv_rows(filename, source_reader):
 
         for row in source_reader:
             info = []
+            info.append(row[2]) # block-height (range)
             info.append(row[1]) # timestamp
             info.append(row[0]) # binance_algousdt
             info.append(row[3]) # humbleswap_algousdc
