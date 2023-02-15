@@ -14,7 +14,7 @@ st.set_page_config(page_title='Algorand MEV Dashboard', layout = 'wide', page_ic
 
 st.title("Algorand MEV Dashboard")
 
-filepath = "prices_responses.csv"
+filepath = "../data/prices_responses.csv"
 df = pd.read_csv(filepath)
 
 
