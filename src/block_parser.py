@@ -150,15 +150,9 @@ def swap_summary(transactions):
     if not receiving_transaction:
         return
 
-    # Group ID
     group_id = application_call["group"]
-
-    # Send-Amount, Send-Asset
     amount_send, asset_id_send = get_send_asset_info(funding_transaction)
-    # Received-Amount, Received-Asset
     amount_received, asset_id_received = get_received_asset_info(receiving_transaction)
-
-    # print(group_id, ", Sender:", sender, ", Receiver: ", receiver)
 
     return {
         "group_id": group_id,
