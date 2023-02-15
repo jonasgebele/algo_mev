@@ -38,3 +38,19 @@ def get_markets() -> dict:
             key = row['market_name'] + '_' + row['asset_0'] + row['asset_1']
             markets[key] = row['address'], int(row['application_id'])
     return markets
+
+def get_markets_addresses() -> dict:
+    market_addresses = dict()
+    markets = get_markets()
+    for market in markets:
+        market_info = markets[market]
+        market_addresses[market] = market_info[0]
+    return market_addresses
+
+def get_markets_application_ids() -> dict:
+    market_application_ids = dict()
+    markets = get_markets()
+    for market in markets:
+        market_info = markets[market]
+        market_application_ids[market] = market_info[1]
+    return market_application_ids
