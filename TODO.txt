@@ -5,3 +5,5 @@
 [ ] Update Dashboard x-axis to block-numbers
 [ ] Research if swap-interactions can be done only as internal interactions
 [X] outsource DEX list to a csv where each file reads in the content
+
+[ ] PLOT SOME ADDRESSES INTO THE CHART11:17 15.02.2023
