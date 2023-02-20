@@ -7,19 +7,19 @@ streamlit run dashboard/Dashboard.py
 ```
 
 
-## DEX Price Scraper
+## Analysis & Data Engineering
 
-### Real-Time DEX Info Scraper
+### Real-Time Price Scraper
 
 ```
-$ python realtime_dex_price_scraper.py
+$ python realtime_price_scraper.py
 ```
 
 Run on server in the backtround (and kill the process if you want to end it).
 
 ```
-$ nohup python realtime_dex_price_scraper.py &
-$ pgrep -f realtime_dex_price_scraper.py
+$ nohup python realtime_price_scraper.py &
+$ pgrep -f realtime_price_scraper.py
 $ kill <process ID>
 ```
 
@@ -33,7 +33,7 @@ Binance_ALGOUSDT,timestamp,round:,HUMBLESWAP_ALGOUSDC,pool_size_X,pool_size_Y,ro
 0.24595,1674694165.43,26522440,0.2452508205288513,3112569889715,763360319406,26522440,0.2448620844881125,226716298965,55514225552,26522440,0.24504287134942324,1731027924906,424176053105,26522440,0.2365567269849801,18944661,4481487,26522440,0.24474284501934707,1203830828802,294628981963,26522440,0.24906814028185406,43491482635,10832342698
 ```
 
-### Dataset Creation
+### Create Analytics Datasets
 
 #### Price Dataset
 
