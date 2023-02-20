@@ -52,15 +52,15 @@ def get_stablecoin_amount(assets):
 
 def get_swap_price_from_address_at_range(markets, key):
     try:
-        # ALGOEXPLORER INDEXER
+        # ALGOEXPLORER NODE
         '''
         response = requests.get(f"https://node.algoexplorerapi.io/v2/accounts/{markets[key]}").json()
         '''
         # TUM INDEXER
-        #'''
         response = requests.get(f"http://131.159.14.109:8981/v2/accounts/{markets[key]}").json()
         response = response["account"]
-        #'''
+   
+
         round = response['round']
         X = response['amount']
         Y = get_stablecoin_amount(response['assets'])
