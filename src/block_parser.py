@@ -149,7 +149,11 @@ def extract_swap_information(transactions):
     received_transaction_field = get_fields_from_transaction(receiving_transaction, ["asset-id", "amount"])
     amount_received, asset_id_received = received_transaction_field["amount"], received_transaction_field["asset-id"]
 
+    # 8. Extract the round for data-analysis purposes
+    round = application_call["confirmed-round"]
+
     return {
+        "round": round,
         "group_id": group_id,
         "sender": sender,
         "receiver": receiver,
