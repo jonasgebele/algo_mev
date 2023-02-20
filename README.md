@@ -88,54 +88,31 @@ round,group_id,sender,receiver,application-id,amount_send,asset_id_send,amount_r
 26814043,UBGLzvRIyKao6/L5+sx6L/xJfHv7H3Q6j/rx/jTCjro=,7CRK6G4IG2BNQFVEDQIARD2DEVUK5M5K66DPRPP6HMIO7FLHACXSAL2UNA,PL7GUDUYPEGBNSY36HOPUFNQDBWDTCSRUV7R7WCPP6VQVGBSTEXMFSCJ2E,552635992,19750666619,300208676,2000,0
 26814046,+7jnCDKig5iBrcd1PkTtoeJZBa3RoOOHI/XG02gJyGU=,7CRK6G4IG2BNQFVEDQIARD2DEVUK5M5K66DPRPP6HMIO7FLHACXSAL2UNA,PL7GUDUYPEGBNSY36HOPUFNQDBWDTCSRUV7R7WCPP6VQVGBSTEXMFSCJ2E,552635992,199504466,300208676,2000,0
 ```
-
-## Parse Historic AMM Swap Interactions
-
-E.g. parse block number 25729521.
-
-```
-python block_tx_scraper.py 25729521 25729522
-```
-
-Output ([Swap on DEX](https://algoexplorer.io/tx/group/xOfl513cvxwdHkdTEHhqB%2BmuQ8Z%2F4pLcC9iXCGImw4A%3D)):
+E.g. block number 25729521 with two transactions ([Swap on DEX](https://algoexplorer.io/tx/group/xOfl513cvxwdHkdTEHhqB%2BmuQ8Z%2F4pLcC9iXCGImw4A%3D))
 
 ```
 [
   {
-    "payment-transaction": {
-      "amount": 300000,
-      "close-amount": 0,
-      "receiver": "SVZS7Q7QMVHZONDHZJHR4564VTMEX3OQ5DSYBWKR5FJFTPZLVG3EZIWC34"
-    },
-    ...
-    "sender": "NNEJ6IOFB2D7EUA2VHTFVAUNLY2XZGBMXG5WUW2XJ3IBAJPUW4PNTZ7KIA",
-    ...
-    "tx-type": "pay"
+    "round": 26814040,
+    "group_id": "YPxyZ/kQnxnGJT5DB9tEDB1EPCy2DbzrVlVaKaq6MGg=",
+    "sender": "W2IZ3EHDRW2IQNPC33CI2CXSLMFCFICVKQVWIYLJWXCTD765RW47ONNCEY",
+    "receiver": "SVZS7Q7QMVHZONDHZJHR4564VTMEX3OQ5DSYBWKR5FJFTPZLVG3EZIWC34",
+    "application-id": 777628254,
+    "amount_send": 500000000,
+    "asset_id_send": 0,
+    "amount_received": 137006317,
+    "asset_id_received": 31566704
   },
   {
-    "application-transaction": {
-      ...
-      "application-id": 777628254,
-      "foreign-assets": [31566704],
-      ...
-    },
-    ...
-    "group": "xOfl513cvxwdHkdTEHhqB+muQ8Z/4pLcC9iXCGImw4A=",
-    "id": "2LOER3TT4FUJM6FHQZPME6OX56ZMFP2CTGB3RK5HOX44T7PPHGIA",
-    "inner-txns": [
-      {
-        "asset-transfer-transaction": {
-          "amount": 71751,
-          "asset-id": 31566704,
-          "close-amount": 0,
-          "receiver": "NNEJ6IOFB2D7EUA2VHTFVAUNLY2XZGBMXG5WUW2XJ3IBAJPUW4PNTZ7KIA"
-        },
-        ...
-        "sender": "SVZS7Q7QMVHZONDHZJHR4564VTMEX3OQ5DSYBWKR5FJFTPZLVG3EZIWC34"
-      }
-    ],
-    ...
-    "sender": "NNEJ6IOFB2D7EUA2VHTFVAUNLY2XZGBMXG5WUW2XJ3IBAJPUW4PNTZ7KIA"
+    "round": 26814040,
+    "group_id": "lSmNvnTX7tQUrJnGg8hX2TnHUsScsp2visD2hNKl+Xo=",
+    "sender": "W2IZ3EHDRW2IQNPC33CI2CXSLMFCFICVKQVWIYLJWXCTD765RW47ONNCEY",
+    "receiver": "L747MOJV43QCLY4HSWVPL2A5SW62IBLA5XPTI5R4HO32WVAWOO5OBCEP3A",
+    "application-id": 620995314,
+    "amount_send": 500000000,
+    "asset_id_send": 0,
+    "amount_received": 136872842,
+    "asset_id_received": 31566704
   }
 ]
 ```
