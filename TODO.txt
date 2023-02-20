@@ -1,8 +1,2 @@
-[X] Change to TUM indexer and validate asset-id 
-[ ] Update Binance Price API with other in a round-robbin fashion in case connection breaks down -> Handle interruptions
-[X] Query address-state from Full-Node instead of Indexer to potentially reduce missing blocks
-[X] Add HumbleSwap missing Algo Stablecoin pairs (e.g. USDT pair)
 [ ] Update Dashboard x-axis to block-numbers
-[ ] Research if swap-interactions can be done only as internal interactions
-[X] outsource DEX list to a csv where each file reads in the content
-[ ] PLOT SOME ADDRESSES INTO THE CHART11:17 15.02.2023
+[ ] Add Tinyman Monitoring v1.0, v2.0 and handel 0.002 Protocol Fee
