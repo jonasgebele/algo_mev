@@ -1,4 +1,3 @@
-import sys
 import csv
 import time
 import logging
@@ -29,9 +28,8 @@ def get_sorted_keys(markets):
     return keys
 
 def get_avg_spot_price_from_binance_spot(markets, key):
+    timestamp = "{:.2f}".format(time.time())
     try:
-        timestamp = "{:.2f}".format(time.time())
-        # print(timestamp)
         response = requests.get(f"https://api.binance.com/api/v3/ticker/bookTicker?symbol={markets[key]}").json()
         bid_price = response['bidPrice']
         ask_price = response['askPrice']
@@ -39,7 +37,21 @@ def get_avg_spot_price_from_binance_spot(markets, key):
         avg_price = (float(bid_price) + float(ask_price)) / 2
         spot_price = round(avg_price, 17)
     except (requests.exceptions.RequestException, ValueError) as e:
+        spot_price = 0
         logging.error(f"An exception doing the {key} API-call occured at timestamp {timestamp}: {e}")
+    finally:
+        return [timestamp, key, spot_price]
+
+def get_avg_spot_price_from_coincap(markets, key):
+    try:
+        response = requests.get(f"https://api.coincap.io/v2/assets/algorand").json()
+        timestamp = response["timestamp"]
+        data = response["data"]
+        spot_price = data["priceUsd"]
+    except (requests.exceptions.RequestException, ValueError) as e:
+        logging.error(f"An exception doing the {key} API-call occured at timestamp {timestamp}: {e}")
+        timestamp = "{:.2f}".format(time.time())
+        spot_price = 0
     finally:
         return [timestamp, key, spot_price]
 
@@ -50,7 +62,7 @@ def get_stablecoin_amount(assets):
             return asset['amount']
     return 0.0000
 
-def get_swap_price_from_address_at_range(markets, key):
+def get_swap_price_from_address(markets, key):
     try:
         # ALGOEXPLORER NODE
         '''
@@ -59,7 +71,6 @@ def get_swap_price_from_address_at_range(markets, key):
         # TUM INDEXER
         response = requests.get(f"http://131.159.14.109:8981/v2/accounts/{markets[key]}").json()
         response = response["account"]
-   
 
         round = response['round']
         X = response['amount']
@@ -115,8 +126,8 @@ def parse_market_endpoints(dex_markets, cex_markets, ordered_dex_keys, ordered_c
     rounds_of_responses = set()
     
     with ThreadPoolExecutor() as executor:
-        results = [executor.submit(get_swap_price_from_address_at_range, dex_markets, key) for key in ordered_dex_keys]
-        results.extend([executor.submit(get_avg_spot_price_from_binance_spot, cex_markets, key) for key in ordered_cex_keys])
+        results = [executor.submit(get_swap_price_from_address, dex_markets, key) for key in ordered_dex_keys]
+        results.extend([executor.submit(get_avg_spot_price_from_coincap, cex_markets, key) for key in ordered_cex_keys])
         for f in as_completed(results):
             result = f.result()
             is_dex_result = True if len(result) == 5 else False
