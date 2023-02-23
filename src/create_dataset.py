@@ -33,8 +33,10 @@ def create_swap_transaction_dataset(start_round, end_round, output_filepath):
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         for round in range(start_round, end_round+1):
-            print(f"Working on round {round}")
+            # print(f"Working on round {round}")
             groups = block_parser.get_swap_interactions(round)
+            if not groups:
+                continue
             for group in groups:
                 transactions_of_group = groups[group]
                 group_summary = block_parser.extract_swap_information(transactions_of_group)
@@ -92,9 +94,9 @@ def create_price_dataset(responses_file):
 
 def main():
     command, params = parse_command_line_arguments()
-    output_filepath = "../data/swap_transactions.csv"
     if command == "transactions":
         start_round, end_round = params["start_round"], params["end_round"]
+        output_filepath = f"../data/transactions_{start_round}.csv"
         create_swap_transaction_dataset(start_round, end_round, output_filepath)
     elif command == "prices":
         input_filepath = params["filepath"]
