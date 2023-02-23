@@ -1,2 +1,0 @@
-[ ] Update Dashboard x-axis to block-numbers
-[ ] Add Tinyman Monitoring v1.0, v2.0 and handel 0.002 Protocol Fee
