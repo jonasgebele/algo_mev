@@ -27,19 +27,29 @@ def parse_command_line_arguments():
         raise ValueError("Invalid command specified")
     return args.command, params
 
+def write_swap_transaction_header(output_filepath):
+    header = ["round", "group_id", "sender", "receiver", "application-id", "amount_send", "asset_id_send", "amount_received", "asset_id_received"]
+    with open(output_filepath, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(header)
+        file.close()
+
+def write_swap_transaction_row(output_filepath, transaction_summary):
+    with open(output_filepath, mode='a', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(transaction_summary)
+        file.close()
+
 def create_swap_transaction_dataset(start_round, end_round, output_filepath):
-    with open(output_filepath, 'w', newline='') as csvfile:
-        fieldnames = ["round", "group_id", "sender", "receiver", "application-id", "amount_send", "asset_id_send", "amount_received", "asset_id_received"]
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writeheader()
-        for round in range(start_round, end_round+1):
-            print(f"Working on round {round}")
-            groups = block_parser.get_swap_interactions(round)
-            for group in groups:
-                transactions_of_group = groups[group]
-                group_summary = block_parser.extract_swap_information(transactions_of_group)
-                print(group_summary)
-                writer.writerow(group_summary)
+    write_swap_transaction_header(output_filepath)
+    for round in range(start_round, end_round+1):
+        groups = block_parser.get_swap_interactions(round)
+        if not groups:
+            continue
+        for group in groups:
+            transactions_of_group = groups[group]
+            group_summary = block_parser.extract_swap_information(transactions_of_group)
+            write_swap_transaction_row(output_filepath, group_summary.values())
 
 def destination_filename(source_file):
     filepath = os.path.dirname(source_file)
@@ -92,15 +102,18 @@ def create_price_dataset(responses_file):
 
 def main():
     command, params = parse_command_line_arguments()
-    output_filepath = "../data/swap_transactions.csv"
     if command == "transactions":
         start_round, end_round = params["start_round"], params["end_round"]
+        output_filepath = f"../data/transactions_{start_round}.csv"
         create_swap_transaction_dataset(start_round, end_round, output_filepath)
     elif command == "prices":
         input_filepath = params["filepath"]
         create_price_dataset(input_filepath)
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("Interrupted by user, exiting.")
     # python create_dataset.py prices "../data/responses_XXXXXXXXXX.csv"
     # python create_dataset.py transactions 26814040 26814140

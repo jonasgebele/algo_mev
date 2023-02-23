@@ -8,7 +8,7 @@ def add_transactions_to_groups(transactions, groups):
     for transaction in transactions:
         if "group" in transaction:
             group = transaction["group"]
-            if group in groups:
+            if group in groups:    
                 groups[group].append(transaction)
     return groups
 
@@ -47,7 +47,30 @@ def get_swap_interactions(block_number):
     transactions = parse_block_data(block_number)
     swap_groups, transactions_within_groups = get_swap_transaction_groups(transactions)
     groups = add_transactions_to_groups(transactions_within_groups, swap_groups)
+    groups = filter_tinyman_non_usd_swaps(groups)
     return groups
+
+def filter_tinyman_non_usd_swaps(groups):
+    filtered_groups = groups.copy()
+    for group in groups:
+        transactions = groups[group]
+        app_call = get_application_call_transaction(transactions)
+        app_transaction = app_call["application-transaction"]
+        app_id = app_transaction["application-id"]
+        if app_id == 552635992:
+            if not is_monitored_assets(transactions):
+                del filtered_groups[group]
+    return filtered_groups
+
+        
+def is_monitored_assets(transaction):
+    if "asset-transfer-transaction" in transaction:
+        asset_transfer = transaction["asset-transfer-transaction"]
+        if "asset-id" in asset_transfer:
+            asset_id = asset_transfer["asset-id"]
+            monitored_assets = markets.get_secondary_assets()
+            return True if asset_id in monitored_assets else False
+    return False
 
 def get_application_call_transaction(transaction_list):
     for transaction in transaction_list:
