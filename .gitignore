@@ -29,3 +29,5 @@ pip-selfcheck.json
 # OS-specific files
 .DS_Store
 Thumbs.db
+
+.ipynb_checkpoints/
