@@ -1,15 +1,20 @@
-# Analysing MEV on Algorand
-## Price Dashboard
-![image](https://user-images.githubusercontent.com/41921050/216204711-9e63c765-22c1-4e2c-8b10-b4069efcb683.png)
+# DEX Analytics on Algorand 
+
+Price Chart of most popular DEX'es on Algorand with Querie-Function for market-maker.
+![image](https://user-images.githubusercontent.com/41921050/222264203-054055b8-c5da-47bc-a86e-3e6dd8da2936.png)
+
+Transaction-Flow summary.
+![image](https://user-images.githubusercontent.com/41921050/222263962-4d23ad83-1cca-4dd5-9eb8-18789ebb5128.png)
+
+
 Run locally with
 ```
 streamlit run dashboard/Dashboard.py
 ```
 
+## On-Chain Data-Mining
 
-## Analysis & Data Engineering
-
-### Real-Time Price Scraper
+### DEX Price Scraper
 
 ```
 $ python realtime_price_scraper.py
@@ -33,7 +38,7 @@ Binance_ALGOUSDT,timestamp,round:,HUMBLESWAP_ALGOUSDC,pool_size_X,pool_size_Y,ro
 0.24595,1674694165.43,26522440,0.2452508205288513,3112569889715,763360319406,26522440,0.2448620844881125,226716298965,55514225552,26522440,0.24504287134942324,1731027924906,424176053105,26522440,0.2365567269849801,18944661,4481487,26522440,0.24474284501934707,1203830828802,294628981963,26522440,0.24906814028185406,43491482635,10832342698
 ```
 
-### Create Analytics Datasets
+### Dataset Creation
 
 #### Price Dataset
 
@@ -45,20 +50,12 @@ $ python create_datasets.py <command> [<args>]
 
 Where <command> is either "prices" or "transactions" and <args> are the additional arguments required for that command. Here are some examples:
 
-To create a prices dataset
+To create the prices dataset
 
 ```
 $ python create_dataset.py prices /path/to/prices.csv
 ```
-
-E.g.
-
-```
-$ python create_dataset.py prices "../data/responses_XXXXXXXXXX.csv"
-```
-
 Output
-
 ```
 block-height,timestamp,binance_algousdt,humbleswap_algousdc,humbleswap_algogousd,pact_algousdc,pact_algousdt,tinyman_algousdc,tinyman_algousdt
 26522436,1674694149.84,0.24575,0.2451717556540756,0.2448620844881125,0.24504287134942324,0.2365567269849801,0.24474284501934707,0.24906814028185406
@@ -74,13 +71,6 @@ To create a transactions dataset from a source file with start and end rounds.
 ```
 $ python create_dataset.py transactions round-start round-end
 ```
-
-E.g.
-
-```
-$ python create_dataset.py transactions 26814040 26814140
-```
-
 ```
 round,group_id,sender,receiver,application-id,amount_send,asset_id_send,amount_received,asset_id_received
 26814040,YPxyZ/kQnxnGJT5DB9tEDB1EPCy2DbzrVlVaKaq6MGg=,W2IZ3EHDRW2IQNPC33CI2CXSLMFCFICVKQVWIYLJWXCTD765RW47ONNCEY,SVZS7Q7QMVHZONDHZJHR4564VTMEX3OQ5DSYBWKR5FJFTPZLVG3EZIWC34,777628254,500000000,0,137006317,31566704
