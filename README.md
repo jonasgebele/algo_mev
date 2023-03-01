@@ -1,6 +1,7 @@
 # Analysing MEV on Algorand
-## Price Dashboard
-![image](https://user-images.githubusercontent.com/41921050/216204711-9e63c765-22c1-4e2c-8b10-b4069efcb683.png)
+
+![image](https://user-images.githubusercontent.com/41921050/222262987-bb5c458d-01a6-4844-aec3-9353ec3bc8f8.png)
+
 Run locally with
 ```
 streamlit run dashboard/Dashboard.py
