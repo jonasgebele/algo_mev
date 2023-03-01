@@ -1,0 +1,11 @@
+[ ] change response filename to range_numbers
+[ ] include range-number ends in the file-names
+[ ] switch between coincap and binance API every 1h
+[ ] exception handling for API requests
+[ ] remove redundent rounds
+
+[ ] construct graph-data
+[ ] create extractable value (ev) DEX-CEX formular (fees included)
+
+[ ] include classes in program-logic
+[ ] make class-paths and imports dynamic without sys
