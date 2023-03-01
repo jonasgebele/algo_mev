@@ -1,3 +1,5 @@
+import block_parser
+
 def estimate_dex_arbitrage_lower_bound():
     # loop through blocks
 
@@ -9,7 +11,7 @@ def estimate_dex_arbitrage_lower_bound():
     pass
 
 def main():
-    block_number = parse_block_parameter()
+    block_number = 27174856
     groups = block_parser.get_swap_interactions(block_number)
     for group in groups:
         transactions_of_group = groups[group]
