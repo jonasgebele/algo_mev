@@ -219,8 +219,8 @@ def main():
     st.set_page_config(page_title='Algorand Analytics', layout = 'wide', page_icon = './images/logo.jpg')
     st.title("Algorand Analytics")
 
-    df_txs = pd.read_csv('./transactions_27132402.csv')
-    df_prices = pd.read_csv('./responses_1676945441.csv')
+    df_txs = pd.read_csv('transactions_27132402.csv')
+    df_prices = pd.read_csv('responses_1676945441.csv')
     df_prices = pre_processing(df_prices)
 
     addresses = get_n_biggest_senders(df_txs, 5)
