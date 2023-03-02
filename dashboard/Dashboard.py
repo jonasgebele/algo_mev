@@ -163,7 +163,7 @@ def is_address_in_dataset(address):
         return True
 
 def get_market_name(address):
-    df = pd.read_csv('./markets.csv')
+    df = pd.read_csv('./dashboard/markets.csv')
     row = df.loc[df['address'] == address]
     if len(row) == 0:
         return 'Address not found'
