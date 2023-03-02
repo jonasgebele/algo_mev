@@ -155,7 +155,7 @@ def get_n_biggest_senders(df_txs, n):
     return sender_counts[:n]
 
 def is_address_in_dataset(address):
-    df = pd.read_csv('./markets.csv')
+    df = pd.read_csv('./dashboard/markets.csv')
     row = df.loc[df['address'] == address]
     if len(row) == 0:
         return False
