@@ -1,0 +1,2 @@
+2023-03-04 22:00:15 ERROR An Value exception occurred while parsing the JSON response from the CoinCap API-call at timestamp 1677963615.52: Expecting value: line 1 column 1 (char 0)
+2023-03-04 22:00:24 ERROR An Value exception occurred while parsing the JSON response from the CoinCap API-call at timestamp 1677963624.30: Expecting value: line 1 column 1 (char 0)
