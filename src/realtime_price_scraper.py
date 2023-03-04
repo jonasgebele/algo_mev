@@ -10,7 +10,7 @@ import markets
 def setup_logging(path):
     logging.basicConfig(
         filename=path,
-        level=logging.WARNING,
+        level=logging.DEBUG,
         format='%(asctime)s %(levelname)s %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S')
 
@@ -44,7 +44,7 @@ def get_avg_spot_price_from_binance(markets, key):
         spot_price = -1
         logging.error(f"An exception doing the Binance API-call occured at timestamp {timestamp}: {e}")
     finally:
-        return timestamp, spot_price
+        return spot_price, timestamp
 
 def get_avg_spot_price_from_coincap():
     try:
@@ -52,6 +52,10 @@ def get_avg_spot_price_from_coincap():
         timestamp = response["timestamp"]
         data = response["data"]
         spot_price = data["priceUsd"]
+    except ValueError as e:
+        timestamp = "{:.2f}".format(time.time())
+        logging.error(f"An Value exception occurred while parsing the JSON response from the CoinCap API-call at timestamp {timestamp}: {e}")
+        spot_price = 0
     except Exception as e:
         timestamp = "{:.2f}".format(time.time())
         spot_price = -1
@@ -68,21 +72,20 @@ def get_exchange_price_from_market(markets, key, parsing_starting_timestamp):
     current_timestamp = get_unix_timestamp()
     time_diff = current_timestamp - parsing_starting_timestamp
 
-    if  not coincap_lock and (time_diff // time_to_switch_endpoints_in_seconds) % 2 == 0:
+    global coincap_lock
+    global binance_lock
+
+    if  (not coincap_lock) and (time_diff // time_to_switch_endpoints_in_seconds) % 2 == 0:
         print("CoinCap")
         spot_price, timestamp = get_avg_spot_price_from_coincap()
         if spot_price == -1:
-            global coincap_lock
             coincap_lock = True
-            global binance_lock
             binance_lock = False
-    elif not binance_lock:
+    elif (not binance_lock):
         print("Binance")
         spot_price, timestamp = get_avg_spot_price_from_binance(markets, key)
         if spot_price == -1:
-            global binance_lock
             binance_lock = True
-            global coincap_lock
             coincap_lock = False
     else:
         spot_price, timestamp = get_avg_spot_price_from_coincap()
