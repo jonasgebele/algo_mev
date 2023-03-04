@@ -1,3 +1,4 @@
+import os
 import csv
 import time
 import logging
@@ -178,19 +179,30 @@ def parse_market_endpoints(dex_markets, cex_markets, ordered_dex_keys, ordered_c
 
         return scraped_dex_responses, rounds_of_responses, scraped_cex_responses
 
+def get_current_block_height():
+    url = "https://node.algoexplorerapi.io/v2/status"
+    response = requests.get(url)
+    data = response.json()
+    last_round = int(data["last-round"])
+    return last_round
+
 def main():
-    timestamp = get_unix_timestamp()
+    try:
+        timestamp = get_unix_timestamp()
+        setup_logging(f'../logs/responses_{timestamp}.log')
 
-    setup_logging(f'../logs/responses_{timestamp}.log')
-    source_filepath = f"../data/responses_{timestamp}.csv"
+        starting_block = get_current_block_height()
+        source_filepath = f"../data/responses_{starting_block}.csv"
 
-    dex_markets, cex_markets = get_dex_markets(), get_cex_markets()
-    ordered_dex_keys, ordered_cex_keys = get_sorted_keys(dex_markets), get_sorted_keys(cex_markets)
-    write_csv_header(source_filepath, ordered_dex_keys, ordered_cex_keys)
-    write_csv_rows(source_filepath, dex_markets, cex_markets, ordered_dex_keys, ordered_cex_keys)
+        dex_markets, cex_markets = get_dex_markets(), get_cex_markets()
+        ordered_dex_keys, ordered_cex_keys = get_sorted_keys(dex_markets), get_sorted_keys(cex_markets)
+        write_csv_header(source_filepath, ordered_dex_keys, ordered_cex_keys)
+        write_csv_rows(source_filepath, dex_markets, cex_markets, ordered_dex_keys, ordered_cex_keys)
+    except KeyboardInterrupt:
+        ending_block = get_current_block_height()
+        new_source_filepath = f"../data/responses_{starting_block}_{ending_block}.csv"
+        os.rename(source_filepath, new_source_filepath)
+        print(f"Interrupted by user, exiting. Stored the price data from block {starting_block} till block {ending_block} in the following file: {new_source_filepath}")
 
 if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        print("Interrupted by user, exiting.")
+    main()
