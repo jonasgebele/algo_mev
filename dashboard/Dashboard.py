@@ -155,7 +155,7 @@ def get_n_biggest_senders(df_txs, n):
     return sender_counts[:n]
 
 def is_address_in_dataset(address):
-    df = pd.read_csv('./markets.csv')
+    df = pd.read_csv('./dashboard/markets.csv')
     row = df.loc[df['address'] == address]
     if len(row) == 0:
         return False
@@ -163,7 +163,7 @@ def is_address_in_dataset(address):
         return True
 
 def get_market_name(address):
-    df = pd.read_csv('./markets.csv')
+    df = pd.read_csv('./dashboard/markets.csv')
     row = df.loc[df['address'] == address]
     if len(row) == 0:
         return 'Address not found'
@@ -219,8 +219,8 @@ def main():
     st.set_page_config(page_title='Algorand Analytics', layout = 'wide', page_icon = './images/logo.jpg')
     st.title("Algorand Analytics")
 
-    df_txs = pd.read_csv('./transactions_27132402.csv')
-    df_prices = pd.read_csv('./responses_1676945441.csv')
+    df_txs = pd.read_csv('./dashboard/transactions_27132402.csv')
+    df_prices = pd.read_csv('./dashboard/responses_1676945441.csv')
     df_prices = pre_processing(df_prices)
 
     addresses = get_n_biggest_senders(df_txs, 5)
