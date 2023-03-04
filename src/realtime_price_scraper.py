@@ -27,7 +27,10 @@ def get_sorted_keys(markets):
     keys.sort()
     return keys
 
-def get_avg_spot_price_from_binance_spot(markets, key):
+def get_unix_timestamp():
+    return int(time.time())
+
+def get_avg_spot_price_from_binance(markets, key):
     timestamp = "{:.2f}".format(time.time())
     try:
         response = requests.get(f"https://api.binance.com/api/v3/ticker/bookTicker?symbol={markets[key]}").json()
@@ -36,24 +39,57 @@ def get_avg_spot_price_from_binance_spot(markets, key):
         # Calculate the average of the two prices to get a fair representation of the exchange price
         avg_price = (float(bid_price) + float(ask_price)) / 2
         spot_price = round(avg_price, 17)
-    except (requests.exceptions.RequestException, ValueError) as e:
-        spot_price = 0
-        logging.error(f"An exception doing the {key} API-call occured at timestamp {timestamp}: {e}")
+    except Exception as e:
+        spot_price = -1
+        logging.error(f"An exception doing the Binance API-call occured at timestamp {timestamp}: {e}")
     finally:
-        return [timestamp, key, spot_price]
+        return timestamp, spot_price
 
-def get_avg_spot_price_from_coincap(markets, key):
+def get_avg_spot_price_from_coincap():
     try:
         response = requests.get(f"https://api.coincap.io/v2/assets/algorand").json()
         timestamp = response["timestamp"]
         data = response["data"]
         spot_price = data["priceUsd"]
-    except (requests.exceptions.RequestException, ValueError) as e:
-        logging.error(f"An exception doing the {key} API-call occured at timestamp {timestamp}: {e}")
+    except Exception as e:
         timestamp = "{:.2f}".format(time.time())
-        spot_price = 0
+        spot_price = -1
+        logging.error(f"An exception doing the CoinCap ALGO/USD API-call occured at timestamp {timestamp}: {e}")
     finally:
-        return [timestamp, key, spot_price]
+        return spot_price, timestamp
+
+coincap_lock = False
+binance_lock = False
+
+def get_exchange_price_from_market(markets, key, parsing_starting_timestamp):
+    time_to_switch_endpoints_in_seconds = 3600 # 3600 => switch after 1h
+    
+    current_timestamp = get_unix_timestamp()
+    time_diff = current_timestamp - parsing_starting_timestamp
+
+    if  not coincap_lock and (time_diff // time_to_switch_endpoints_in_seconds) % 2 == 0:
+        print("CoinCap")
+        spot_price, timestamp = get_avg_spot_price_from_coincap()
+        if spot_price == -1:
+            global coincap_lock
+            coincap_lock = True
+            global binance_lock
+            binance_lock = False
+    elif not binance_lock:
+        print("Binance")
+        spot_price, timestamp = get_avg_spot_price_from_binance(markets, key)
+        if spot_price == -1:
+            global binance_lock
+            binance_lock = True
+            global coincap_lock
+            coincap_lock = False
+    else:
+        spot_price, timestamp = get_avg_spot_price_from_coincap()
+
+    if spot_price == -1:
+        pass
+
+    return [timestamp, key, spot_price]
 
 def get_stablecoin_amount(assets):
     stablecoin_asset_ids = [312769, 31566704, 672913181] # USDT, USDC, goUSD
@@ -91,9 +127,10 @@ def write_csv_header(filename, ordered_dex_keys, ordered_cex_keys):
         writer.writerow(header)
 
 def write_csv_rows(filename, dex_markets, cex_markets, ordered_dex_keys, ordered_cex_keys):
+    parsing_starting_timestamp = get_unix_timestamp()
     last_dex_responses = None
     while True:
-        scraped_dex_responses, rounds_of_responses, scraped_cex_responses = parse_market_endpoints(dex_markets, cex_markets, ordered_dex_keys, ordered_cex_keys)
+        scraped_dex_responses, rounds_of_responses, scraped_cex_responses = parse_market_endpoints(dex_markets, cex_markets, ordered_dex_keys, ordered_cex_keys, parsing_starting_timestamp)
         # print("Response changed: ", response_changed(scraped_dex_responses, last_dex_responses))
         if not response_changed(scraped_dex_responses, last_dex_responses):
             continue
@@ -121,13 +158,13 @@ def response_changed(scraped_dex_info, latest_scraped_dex_info):
 def consistent_rounds(rounds):
     return False if len(rounds) != 1 else True
 
-def parse_market_endpoints(dex_markets, cex_markets, ordered_dex_keys, ordered_cex_keys):
+def parse_market_endpoints(dex_markets, cex_markets, ordered_dex_keys, ordered_cex_keys, parsing_starting_timestamp):
     scraped_dex_responses, scraped_cex_responses = {}, {}
     rounds_of_responses = set()
     
     with ThreadPoolExecutor() as executor:
         results = [executor.submit(get_swap_price_from_address, dex_markets, key) for key in ordered_dex_keys]
-        results.extend([executor.submit(get_avg_spot_price_from_coincap, cex_markets, key) for key in ordered_cex_keys])
+        results.extend([executor.submit(get_exchange_price_from_market, cex_markets, key, parsing_starting_timestamp) for key in ordered_cex_keys])
         for f in as_completed(results):
             result = f.result()
             is_dex_result = True if len(result) == 5 else False
@@ -142,7 +179,7 @@ def parse_market_endpoints(dex_markets, cex_markets, ordered_dex_keys, ordered_c
         return scraped_dex_responses, rounds_of_responses, scraped_cex_responses
 
 def main():
-    timestamp = int(time.time())
+    timestamp = get_unix_timestamp()
 
     setup_logging(f'../logs/responses_{timestamp}.log')
     source_filepath = f"../data/responses_{timestamp}.csv"
