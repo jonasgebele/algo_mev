@@ -1,6 +1,6 @@
 # DEX Analytics on Algorand
 
-[https://jonasgebele-algo-mev-dashboarddashboard-cgj79v.streamlit.app/](https://jonasgebele-algo-mev-dashboarddashboard-cgj79v.streamlit.app/)
+[https://jonasgebele-algo-mev-dashboardmain-urr4j1.streamlit.app/](https://jonasgebele-algo-mev-dashboardmain-urr4j1.streamlit.app/)
 
 Price Chart of most popular DEX'es on Algorand with Querie-Function for market-maker.
 ![image](https://user-images.githubusercontent.com/41921050/222264203-054055b8-c5da-47bc-a86e-3e6dd8da2936.png)
