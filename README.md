@@ -8,6 +8,8 @@ Price Chart of most popular DEX'es on Algorand with Querie-Function for market-m
 Transaction-Flow summary.
 ![image](https://user-images.githubusercontent.com/41921050/222263962-4d23ad83-1cca-4dd5-9eb8-18789ebb5128.png)
 
+Network-Transaction Graph
+![image](https://user-images.githubusercontent.com/41921050/222935938-75b1bec0-4b8c-42cb-bc5e-c2801283e7ff.png)
 
 Run locally with
 ```
