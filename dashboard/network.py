@@ -48,7 +48,7 @@ def create_network_graph(df):
 
     pos = nx.spring_layout(G)
 
-    node_colors = ['#bbb' if node in senders else '#fff' for node in G.nodes()]
+    node_colors = ['#bbb' if node in senders else '#ddd' for node in G.nodes()]
 
     edge_trace = go.Scatter(x=[], y=[], line={'width': 0.5, 'color': '#888'}, hoverinfo='text', mode='lines')
     for edge in G.edges():
