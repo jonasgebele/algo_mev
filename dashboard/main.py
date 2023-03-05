@@ -162,7 +162,7 @@ def main():
     st.title("Algorand Analytics")
 
     TRANSACTION_FILE = './data/transactions_27132402.csv'
-    PRICE_HISTORY_FILE = './data/responses_1676945441.csv'
+    PRICE_HISTORY_FILE = './data/responses_27132402.csv'
 
     transactions = pd.read_csv(TRANSACTION_FILE)
 
