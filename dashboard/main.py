@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 
 import sankey
 import network
+import volume
 
 DEX_FEE = 0.003
 
@@ -141,7 +142,14 @@ def create_price_chart(df_prices, df_txs, addresses = None):
 
     return fig
 
-def pre_processing(df_prices):
+
+def delete_outside_transactions(transactions):
+    markets = pd.read_csv("./data/markets.csv")
+    market_addresses = markets['address'].tolist()
+    transactions = transactions[transactions['receiver'].isin(market_addresses)]
+    return transactions
+
+def simplyfy_prices_dataframe(df_prices):
     redundant_columns = [
     'round:.2',
     'round:.3',
@@ -157,19 +165,39 @@ def get_n_biggest_senders(df_txs, n):
     sender_counts = df_txs.groupby('sender')['sender'].count().sort_values(ascending=False)
     return sender_counts[:n]
 
+def get_max_min_rounds(df):
+    max_round = df['round'].max()
+    min_round = df['round'].min()
+    return min_round, max_round
+
+def get_rounds_between(df, start_round, end_round):
+    return df.loc[(df['round'] >= start_round) & (df['round'] <= end_round)]
+
 def main():
     st.set_page_config(page_title='Algorand Analytics', layout = 'wide', page_icon = './images/logo.jpg')
     st.title("Algorand Analytics")
 
-    TRANSACTION_FILE = './data/transactions_27132402.csv'
-    PRICE_HISTORY_FILE = './data/responses_27132402.csv'
+    #option = st.selectbox(
+    #'Which dataset you want to analyze?',
+    #('27410001', '27132402'))
+
+    TRANSACTION_FILE = f'./data/transactions_27410001.csv'
+    PRICE_HISTORY_FILE = f'./data/responses_27410001.csv'
 
     transactions = pd.read_csv(TRANSACTION_FILE)
-
     prices = pd.read_csv(PRICE_HISTORY_FILE)
-    prices = pre_processing(prices)
 
-    biggest_senders_list = get_n_biggest_senders(transactions, 5)
+    prices = simplyfy_prices_dataframe(prices)
+    transactions = delete_outside_transactions(transactions)
+
+    #min_round, max_round = get_max_min_rounds(transactions)
+    #start_round, end_round = st.select_slider(
+    #    'Select a rounds you want to display',
+    #    options=transactions[['round']],
+    #    value=(min_round, max_round))
+    #transactions = get_rounds_between(transactions, start_round, end_round)
+
+    biggest_senders_list = get_n_biggest_senders(transactions, 10)
 
     chart_fig = create_price_chart(prices, transactions, biggest_senders_list)
     st.plotly_chart(chart_fig, use_container_width=True)
@@ -179,6 +207,9 @@ def main():
 
     network_fig = network.create_network_graph(transactions)
     st.plotly_chart(network_fig, use_container_width=True)
+
+    #volume_fig = volume.plot_volume_trades(transactions)
+    #st.plotly_chart(volume_fig, use_container_width=True)
 
     st.json(transactions.to_dict(), expanded=False)
 
