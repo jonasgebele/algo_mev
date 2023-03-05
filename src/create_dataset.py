@@ -49,7 +49,8 @@ def create_swap_transaction_dataset(start_round, end_round, output_filepath):
         for group in groups:
             transactions_of_group = groups[group]
             group_summary = block_parser.extract_swap_information(transactions_of_group)
-            write_swap_transaction_row(output_filepath, group_summary.values())
+            if group_summary:
+                write_swap_transaction_row(output_filepath, group_summary.values())
 
 def destination_filename(source_file):
     filepath = os.path.dirname(source_file)

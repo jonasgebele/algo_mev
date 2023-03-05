@@ -146,32 +146,59 @@ def get_fields_from_transaction(transaction, fields: list):
 def extract_swap_information(transactions):
     # 1. Get the unique application call of the group
     application_call = get_application_call_transaction(transactions)
+    print(application_call)
     group_id = application_call["group"]
+    print(group_id)
 
     # 2. Extract the unique sender out of the application call
     sender = application_call["sender"]
+    print(sender)
     # 3. Find with the sender-address the funding-transaction from all transactions
     funding_transaction = get_funding_transaction(transactions, sender)
-    
-    # 4. Extract receiver from the funding-transaction
-    receiver_transaction_field = get_fields_from_transaction(funding_transaction, ["receiver"])
-    receiver = receiver_transaction_field["receiver"]
+
+    print(funding_transaction)
+    if funding_transaction:
+        # 4. Extract receiver from the funding-transaction
+        receiver_transaction_field = get_fields_from_transaction(funding_transaction, ["receiver"])
+        receiver = receiver_transaction_field["receiver"]
+        print(receiver)
+    else:
+        return {}
 
     # 5. Extract the application-id to differentiate between different tx's strcutures of protocols
     application_id_transaction_field = get_fields_from_transaction(application_call, ["application-id"])
     application_id = application_id_transaction_field["application-id"]
+
+    # if tinyman v2, check receiver address is the USDC one
+    if application_id == 1002541853: # Tinyman v2
+        # check receiver address is the USDC handler
+        if not (receiver == "2PIFZW53RHCSFSYMCFUBW4XOCXOMB7XOYQSQ6KGT3KVGJTL4HM6COZRNMM"):
+            return {}
+        # check if there is an additional application call within the inner txs
+    # if AlgoFi, check receiver address is the USDT or USDC one
+    if application_id == 1026089225:
+        if not (receiver == "NGIHJMECRSFHIEQDHBVTLR54K7DOZWM5M6UM3A5CIOYSP6H3QTGSHHGJCQ"):
+            return {}
+    if application_id == 613217007:
+        if not (receiver == "ZZJNP4QMRQS5IWRIT57P6RQJ2EPK4LBDWNAUNF7EXOUNZU4BUTDXIDHI6I"):
+            return {}
+
     # 6. Find the receiving transaction either in application-call-transaction (Tinyman) or with application-id from all transactions
     receiving_transaction = get_receiving_transaction(transactions, application_call, application_id, receiver)
+
+    print(receiving_transaction)
 
     if (not funding_transaction) or (not receiving_transaction):
         return {} # TODO: Check for Tinyman -> Check if Assets are USDC, goUSD or USDT - all assets go over same address
 
     # 7. Parse funding-transaction and receiving-transaction for amount and asset-ids
-    send_transaction_field = get_fields_from_transaction(funding_transaction, ["asset-id", "amount"])
-    amount_send, asset_id_send = send_transaction_field["amount"], send_transaction_field["asset-id"]
-    received_transaction_field = get_fields_from_transaction(receiving_transaction, ["asset-id", "amount"])
-    amount_received, asset_id_received = received_transaction_field["amount"], received_transaction_field["asset-id"]
-
+    try:
+        send_transaction_field = get_fields_from_transaction(funding_transaction, ["asset-id", "amount"])
+        amount_send, asset_id_send = send_transaction_field["amount"], send_transaction_field["asset-id"]
+        received_transaction_field = get_fields_from_transaction(receiving_transaction, ["asset-id", "amount"])
+        amount_received, asset_id_received = received_transaction_field["amount"], received_transaction_field["asset-id"]
+    except:
+        return {}
     # 8. Extract the round for data-analysis purposes
     round = application_call["confirmed-round"]
 
