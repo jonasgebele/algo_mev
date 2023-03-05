@@ -22,7 +22,6 @@ ENV/
 pip-selfcheck.json
 
 # Logs and databases
-*.log
 *.sqlite3
 *.db
 
