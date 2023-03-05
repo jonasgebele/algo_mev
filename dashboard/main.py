@@ -161,22 +161,26 @@ def main():
     st.set_page_config(page_title='Algorand Analytics', layout = 'wide', page_icon = './images/logo.jpg')
     st.title("Algorand Analytics")
 
-    df_txs = pd.read_csv('./dashboard/transactions_27132402.csv')
-    df_prices = pd.read_csv('./dashboard/responses_1676945441.csv')
-    df_prices = pre_processing(df_prices)
+    TRANSACTION_FILE = './data/transactions_27132402.csv'
+    PRICE_HISTORY_FILE = './data/responses_1676945441.csv'
 
-    addresses = get_n_biggest_senders(df_txs, 5)
+    transactions = pd.read_csv(TRANSACTION_FILE)
 
-    fig = create_price_chart(df_prices, df_txs, addresses)
-    st.plotly_chart(fig, use_container_width=True)
+    prices = pd.read_csv(PRICE_HISTORY_FILE)
+    prices = pre_processing(prices)
 
-    sankey_fig = sankey.create_sankey_graph(df_txs, 100)
+    biggest_senders_list = get_n_biggest_senders(transactions, 5)
+
+    chart_fig = create_price_chart(prices, transactions, biggest_senders_list)
+    st.plotly_chart(chart_fig, use_container_width=True)
+
+    sankey_fig = sankey.create_sankey_graph(transactions, 100)
     st.plotly_chart(sankey_fig, use_container_width=True)
 
-    network_fig = network.create_network_graph(df_txs)
+    network_fig = network.create_network_graph(transactions)
     st.plotly_chart(network_fig, use_container_width=True)
 
-    st.json(df_txs.to_dict(), expanded=False)
+    st.json(transactions.to_dict(), expanded=False)
 
 if __name__ == "__main__":
     main()
