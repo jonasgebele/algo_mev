@@ -176,5 +176,7 @@ def main():
     network_fig = network.create_network_graph(df_txs)
     st.plotly_chart(network_fig, use_container_width=True)
 
+    st.json(df_txs.to_dict(), expanded=False)
+
 if __name__ == "__main__":
     main()

@@ -2,6 +2,24 @@ import pandas as pd
 import plotly.graph_objects as go
 import networkx as nx
 
+def is_address_in_dataset(address):
+    df = pd.read_csv('./dashboard/markets.csv')
+    row = df.loc[df['address'] == address]
+    if len(row) == 0:
+        return False
+    else:
+        return True
+
+def get_market_name(address):
+    df = pd.read_csv('./dashboard/markets.csv')
+    row = df.loc[df['address'] == address]
+    if len(row) == 0:
+        return 'Address not found'
+    else:
+        market_name = row['market_name'].values[0]
+        asset_0 = row['asset_0'].values[0]
+        asset_1 = row['asset_1'].values[0]
+        return f'{market_name} ({asset_0}/{asset_1})'
 
 def get_unique_senders(df):
     senders = df['sender'].unique()
@@ -30,9 +48,9 @@ def create_network_graph(df):
 
     pos = nx.spring_layout(G)
 
-    node_colors = ['#1f77b4' if node in senders else '#ff7f0e' for node in G.nodes()]
+    node_colors = ['#fff' if node in senders else '#111' for node in G.nodes()]
 
-    edge_trace = go.Scatter(x=[], y=[], line={'width': 0.5, 'color': '#888'}, hoverinfo='none', mode='lines')
+    edge_trace = go.Scatter(x=[], y=[], line={'width': 0.5, 'color': '#888'}, hoverinfo='text', mode='lines')
     for edge in G.edges():
         x0, y0 = pos[edge[0]]
         x1, y1 = pos[edge[1]]
@@ -40,6 +58,7 @@ def create_network_graph(df):
         edge_trace['y'] += tuple([y0, y1, None])
 
     node_trace = go.Scatter(x=[], y=[], text=[], mode='markers', hoverinfo='text', marker={'size': 10, 'color': node_colors})
+
     for node in G.nodes():
         x, y = pos[node]
         
@@ -53,6 +72,12 @@ def create_network_graph(df):
 
         node_trace['text'] += (node,)
 
+        if is_address_in_dataset(node):
+            exchange_descriptor =  get_market_name(node)
+            node_trace['text'] += (exchange_descriptor,)
+        else:
+            node_trace['text'] += (node,)
+
     fig = go.Figure(data=[edge_trace, node_trace],
                 layout=go.Layout(
                     title='',
@@ -64,9 +89,4 @@ def create_network_graph(df):
                 ))
     return fig
 
-
-def main():
-    pass
-
-if __name__ == "__main__":
-    main()
+# https://towardsdatascience.com/tutorial-network-visualization-basics-with-networkx-and-plotly-and-a-little-nlp-57c9bbb55bb9
