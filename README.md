@@ -1,4 +1,4 @@
-# DEX Analytics on Algorand 
+# DEX Analytics on Algorand
 
 [https://jonasgebele-algo-mev-dashboarddashboard-cgj79v.streamlit.app/](https://jonasgebele-algo-mev-dashboarddashboard-cgj79v.streamlit.app/)
 
@@ -12,8 +12,9 @@ Network-Transaction Graph
 ![image](https://user-images.githubusercontent.com/41921050/222935944-e1048ea1-46dd-4309-b60e-b42be5036f71.png)
 
 Run locally with
+
 ```
-streamlit run dashboard/Dashboard.py
+streamlit run dashboard/main.py
 ```
 
 ## On-Chain Data-Mining
@@ -59,7 +60,9 @@ To create the prices dataset
 ```
 $ python create_dataset.py prices /path/to/prices.csv
 ```
+
 Output
+
 ```
 block-height,timestamp,binance_algousdt,humbleswap_algousdc,humbleswap_algogousd,pact_algousdc,pact_algousdt,tinyman_algousdc,tinyman_algousdt
 26522436,1674694149.84,0.24575,0.2451717556540756,0.2448620844881125,0.24504287134942324,0.2365567269849801,0.24474284501934707,0.24906814028185406
@@ -75,13 +78,15 @@ To create a transactions dataset from a source file with start and end rounds.
 ```
 $ python create_dataset.py transactions round-start round-end
 ```
+
 ```
 round,group_id,sender,receiver,application-id,amount_send,asset_id_send,amount_received,asset_id_received
 26814040,YPxyZ/kQnxnGJT5DB9tEDB1EPCy2DbzrVlVaKaq6MGg=,W2IZ3EHDRW2IQNPC33CI2CXSLMFCFICVKQVWIYLJWXCTD765RW47ONNCEY,SVZS7Q7QMVHZONDHZJHR4564VTMEX3OQ5DSYBWKR5FJFTPZLVG3EZIWC34,777628254,500000000,0,137006317,31566704
 26814040,lSmNvnTX7tQUrJnGg8hX2TnHUsScsp2visD2hNKl+Xo=,W2IZ3EHDRW2IQNPC33CI2CXSLMFCFICVKQVWIYLJWXCTD765RW47ONNCEY,L747MOJV43QCLY4HSWVPL2A5SW62IBLA5XPTI5R4HO32WVAWOO5OBCEP3A,620995314,500000000,0,136872842,31566704
 26814043,UBGLzvRIyKao6/L5+sx6L/xJfHv7H3Q6j/rx/jTCjro=,7CRK6G4IG2BNQFVEDQIARD2DEVUK5M5K66DPRPP6HMIO7FLHACXSAL2UNA,PL7GUDUYPEGBNSY36HOPUFNQDBWDTCSRUV7R7WCPP6VQVGBSTEXMFSCJ2E,552635992,19750666619,300208676,2000,0
 26814046,+7jnCDKig5iBrcd1PkTtoeJZBa3RoOOHI/XG02gJyGU=,7CRK6G4IG2BNQFVEDQIARD2DEVUK5M5K66DPRPP6HMIO7FLHACXSAL2UNA,PL7GUDUYPEGBNSY36HOPUFNQDBWDTCSRUV7R7WCPP6VQVGBSTEXMFSCJ2E,552635992,199504466,300208676,2000,0
-```  
+```
+
 E.g. block number 26814040 with two transactions ([Swap on DEX](https://algoexplorer.io/tx/group/xOfl513cvxwdHkdTEHhqB%2BmuQ8Z%2F4pLcC9iXCGImw4A%3D))
 
 ```

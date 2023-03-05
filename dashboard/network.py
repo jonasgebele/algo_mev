@@ -3,7 +3,7 @@ import plotly.graph_objects as go
 import networkx as nx
 
 def is_address_in_dataset(address):
-    df = pd.read_csv('./dashboard/markets.csv')
+    df = pd.read_csv('./data/markets.csv')
     row = df.loc[df['address'] == address]
     if len(row) == 0:
         return False
@@ -11,7 +11,7 @@ def is_address_in_dataset(address):
         return True
 
 def get_market_name(address):
-    df = pd.read_csv('./dashboard/markets.csv')
+    df = pd.read_csv('./data/markets.csv')
     row = df.loc[df['address'] == address]
     if len(row) == 0:
         return 'Address not found'
