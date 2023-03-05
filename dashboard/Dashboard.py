@@ -3,6 +3,9 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
+import sankey
+import network
+
 DEX_FEE = 0.003
 
 def lower_profit_deviation(S: float, fee: float):
@@ -154,67 +157,6 @@ def get_n_biggest_senders(df_txs, n):
     sender_counts = df_txs.groupby('sender')['sender'].count().sort_values(ascending=False)
     return sender_counts[:n]
 
-def is_address_in_dataset(address):
-    df = pd.read_csv('./dashboard/markets.csv')
-    row = df.loc[df['address'] == address]
-    if len(row) == 0:
-        return False
-    else:
-        return True
-
-def get_market_name(address):
-    df = pd.read_csv('./dashboard/markets.csv')
-    row = df.loc[df['address'] == address]
-    if len(row) == 0:
-        return 'Address not found'
-    else:
-        market_name = row['market_name'].values[0]
-        asset_0 = row['asset_0'].values[0]
-        asset_1 = row['asset_1'].values[0]
-        return f'{market_name} ({asset_0}/{asset_1})'
-
-def create_sankey_data(df):
-    top_senders = df.groupby('sender')['sender'].count().nlargest(5).index.tolist()
-    top_receivers = df.groupby('receiver')['receiver'].count().nlargest(5).index.tolist()
-    
-    nodes = top_senders + top_receivers
-    
-    node_dict = {node: i for i, node in enumerate(nodes)}
-    
-    links = []
-    for sender in top_senders:
-        sender_df = df[df['sender'] == sender]
-        for receiver in top_receivers:
-            count = sender_df[sender_df['receiver'] == receiver]['receiver'].count()
-            if count > 0:
-                links.append({'source': node_dict[sender], 'target': node_dict[receiver], 'value': count})
-    
-    return nodes, links
-
-def create_sankey_graph(df):
-    nodes, links = create_sankey_data(df)
-
-    for i in range(len(nodes)):
-        if is_address_in_dataset(nodes[i]):
-            nodes[i] = get_market_name(nodes[i])
-
-    fig = go.Figure(data=[go.Sankey(
-        node = dict(
-        pad = 15,
-        thickness = 20,
-        line = dict(color = "grey", width = 0.5),
-        label = nodes,
-        color = "white"
-        ),
-        link = dict(
-        source = [link['source'] for link in links],
-        target = [link['target'] for link in links],
-        value = [link['value'] for link in links]
-    ))])
-
-    fig.update_layout(title_text="Transaction Flow", font_size=10)
-    return fig
-
 def main():
     st.set_page_config(page_title='Algorand Analytics', layout = 'wide', page_icon = './images/logo.jpg')
     st.title("Algorand Analytics")
@@ -228,8 +170,11 @@ def main():
     fig = create_price_chart(df_prices, df_txs, addresses)
     st.plotly_chart(fig, use_container_width=True)
 
-    fig = create_sankey_graph(df_txs)
-    st.plotly_chart(fig, use_container_width=True)
+    sankey_fig = sankey.create_sankey_graph(df_txs, 100)
+    st.plotly_chart(sankey_fig, use_container_width=True)
+
+    network_fig = network.create_network_graph(df_txs)
+    st.plotly_chart(network_fig, use_container_width=True)
 
 if __name__ == "__main__":
     main()
